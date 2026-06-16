@@ -1,0 +1,152 @@
+[gd_scene format=3 uid="uid://72818vq44ik0"]
+
+[ext_resource type="PackedScene" path="res://scenes/Player.tscn" id="1_player"]
+[ext_resource type="PackedScene" path="res://scenes/DummyEnemy.tscn" id="2_dummy"]
+[ext_resource type="Script" uid="uid://mb65cbbb1w2t" path="res://scripts/dead_zone_camera.gd" id="3_camera_script"]
+[ext_resource type="PackedScene" path="res://scenes/SwordPickup.tscn" id="4_sword_pickup"]
+[ext_resource type="PackedScene" path="res://scenes/ShieldPickup.tscn" id="5_shield_pickup"]
+[ext_resource type="PackedScene" path="res://scenes/AxePickup.tscn" id="6_axe_pickup"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
+size = Vector2(1800, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_wall"]
+size = Vector2(48, 360)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_box_large"]
+size = Vector2(72, 72)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_box_small"]
+size = Vector2(48, 48)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_step"]
+size = Vector2(96, 32)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_platform"]
+size = Vector2(220, 28)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_tunnel_ceiling"]
+size = Vector2(260, 48)
+
+[node name="TestPlayground" type="Node2D" unique_id=1583882844]
+
+[node name="Background" type="ColorRect" parent="." unique_id=654955633]
+offset_left = -200.0
+offset_top = -160.0
+offset_right = 1900.0
+offset_bottom = 720.0
+color = Color(0.08, 0.09, 0.11, 1)
+
+[node name="Player" parent="." unique_id=44135155 instance=ExtResource("1_player")]
+position = Vector2(120, 440)
+
+[node name="DummyEnemy" parent="." unique_id=1548625802 instance=ExtResource("2_dummy")]
+position = Vector2(1010, 440)
+
+[node name="SwordPickup" parent="." unique_id=381289887 instance=ExtResource("4_sword_pickup")]
+position = Vector2(799, 430)
+
+[node name="ShieldPickup" parent="." unique_id=1945395114 instance=ExtResource("5_shield_pickup")]
+position = Vector2(864, 430)
+
+[node name="AxePickup" parent="." unique_id=184474434 instance=ExtResource("6_axe_pickup")]
+position = Vector2(1570, 430)
+
+[node name="GameplayCamera" type="Camera2D" parent="." unique_id=766291344]
+position = Vector2(120, 392)
+zoom = Vector2(0.85, 0.85)
+script = ExtResource("3_camera_script")
+target_path = NodePath("../Player")
+
+[node name="World" type="Node2D" parent="." unique_id=141641829]
+
+[node name="Floor" type="StaticBody2D" parent="World" unique_id=1054553109]
+position = Vector2(900, 464)
+
+[node name="Visual" type="ColorRect" parent="World/Floor" unique_id=1781585809]
+offset_left = -900.0
+offset_top = -24.0
+offset_right = 900.0
+offset_bottom = 24.0
+color = Color(0.28, 0.28, 0.3, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Floor" unique_id=1788400130]
+shape = SubResource("RectangleShape2D_floor")
+
+[node name="LeftWall" type="StaticBody2D" parent="World" unique_id=1022250711]
+position = Vector2(-24, 260)
+
+[node name="Visual" type="ColorRect" parent="World/LeftWall" unique_id=617228281]
+offset_left = -24.0
+offset_top = -180.0
+offset_right = 24.0
+offset_bottom = 180.0
+color = Color(0.2, 0.21, 0.24, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/LeftWall" unique_id=52721588]
+shape = SubResource("RectangleShape2D_wall")
+
+[node name="LargeBox" type="StaticBody2D" parent="World" unique_id=1076114196]
+position = Vector2(360, 404)
+
+[node name="Visual" type="ColorRect" parent="World/LargeBox" unique_id=2018642488]
+offset_left = -36.0
+offset_top = -36.0
+offset_right = 36.0
+offset_bottom = 36.0
+color = Color(0.72, 0.42, 0.18, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/LargeBox" unique_id=1639803292]
+shape = SubResource("RectangleShape2D_box_large")
+
+[node name="SmallBox" type="StaticBody2D" parent="World" unique_id=271208761]
+position = Vector2(500, 416)
+
+[node name="Visual" type="ColorRect" parent="World/SmallBox" unique_id=2030640412]
+offset_left = -24.0
+offset_top = -24.0
+offset_right = 24.0
+offset_bottom = 24.0
+color = Color(0.58, 0.35, 0.17, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/SmallBox" unique_id=644133639]
+shape = SubResource("RectangleShape2D_box_small")
+
+[node name="Step" type="StaticBody2D" parent="World" unique_id=229425164]
+position = Vector2(690, 424)
+
+[node name="Visual" type="ColorRect" parent="World/Step" unique_id=191127195]
+offset_left = -48.0
+offset_top = -16.0
+offset_right = 48.0
+offset_bottom = 16.0
+color = Color(0.36, 0.42, 0.48, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Step" unique_id=1154124696]
+shape = SubResource("RectangleShape2D_step")
+
+[node name="RaisedPlatform" type="StaticBody2D" parent="World" unique_id=1665410549]
+position = Vector2(860, 218)
+
+[node name="Visual" type="ColorRect" parent="World/RaisedPlatform" unique_id=351485531]
+offset_left = -110.0
+offset_top = -14.0
+offset_right = 110.0
+offset_bottom = 14.0
+color = Color(0.24, 0.45, 0.52, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/RaisedPlatform" unique_id=1839183518]
+shape = SubResource("RectangleShape2D_platform")
+
+[node name="RollTunnelCeiling" type="StaticBody2D" parent="World" unique_id=1639905402]
+position = Vector2(1320, 368)
+
+[node name="Visual" type="ColorRect" parent="World/RollTunnelCeiling" unique_id=1269064074]
+offset_left = -130.0
+offset_top = -24.0
+offset_right = 130.0
+offset_bottom = 24.0
+color = Color(0.34, 0.36, 0.4, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/RollTunnelCeiling" unique_id=287467275]
+shape = SubResource("RectangleShape2D_tunnel_ceiling")
