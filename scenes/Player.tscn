@@ -6,6 +6,7 @@
 size = Vector2(40, 96)
 
 [node name="Player" type="CharacterBody2D"]
+z_index = 10
 script = ExtResource("1_player_script")
 
 [node name="BodyParts" type="Node2D" parent="."]

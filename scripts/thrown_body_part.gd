@@ -19,8 +19,10 @@ var part_color := Color(1, 0.05, 0.05, 1)
 var body_part_type := ""
 var body_part_id := ""
 var carried_item_type := ""
+var is_recoverable := true
 var state := FLYING_STATE
 var fall_speed := 0.0
+var drift_velocity := Vector2.ZERO
 var is_on_ground := false
 var pickup_delay_left := 0.0
 
@@ -53,6 +55,7 @@ func _physics_process(delta: float) -> void:
 			drop_body_part()
 	elif state == DROPPED_STATE and not is_on_ground:
 		fall_speed = minf(fall_speed + FALL_GRAVITY * delta, MAX_FALL_SPEED)
+		global_position.x += drift_velocity.x * delta
 		global_position.y += fall_speed * delta
 
 
@@ -72,7 +75,25 @@ func setup_dropped(new_color: Color, new_body_part_type: String, new_carried_ite
 	carried_item_type = new_carried_item_type
 	body_part_id = new_body_part_id
 	damage = 0
+	is_recoverable = true
 	drop_body_part()
+
+
+func setup_death_piece(new_color: Color, new_size: Vector2, new_launch_velocity: Vector2) -> void:
+	part_color = new_color
+	damage = 0
+	is_recoverable = false
+	visual.offset_left = -new_size.x * 0.5
+	visual.offset_top = -new_size.y * 0.5
+	visual.offset_right = new_size.x * 0.5
+	visual.offset_bottom = new_size.y * 0.5
+
+	var collision_shape := $CollisionShape2D
+	var rectangle_shape := collision_shape.shape as RectangleShape2D
+	rectangle_shape.size = new_size
+	drop_body_part()
+	drift_velocity = new_launch_velocity
+	fall_speed = new_launch_velocity.y
 
 
 func _on_body_entered(body: Node) -> void:
@@ -90,16 +111,17 @@ func handle_collision(other: Node) -> void:
 
 		if other.has_method("take_damage"):
 			other.call("take_damage", damage)
-		if other.has_method("stun_for_duration"):
-			other.call("stun_for_duration", THROWN_ARM_STUN_DURATION)
-		elif other.has_method("stun"):
-			other.call("stun")
+			if other.has_method("stun_for_duration"):
+				other.call("stun_for_duration", THROWN_ARM_STUN_DURATION)
+			elif other.has_method("stun"):
+				other.call("stun")
 
-		drop_body_part()
-		if other is StaticBody2D and not other.has_method("take_damage"):
+			drop_body_part()
+		elif other is StaticBody2D:
+			drop_body_part()
 			land_body_part()
 	elif state == DROPPED_STATE:
-		if pickup_delay_left <= 0.0 and other.has_method("recover_body_part") and other.call("recover_body_part", body_part_type, carried_item_type, body_part_id, part_color):
+		if is_recoverable and pickup_delay_left <= 0.0 and other.has_method("recover_body_part") and other.call("recover_body_part", body_part_type, carried_item_type, body_part_id, part_color):
 			queue_free()
 		elif other is StaticBody2D:
 			land_body_part()
@@ -110,6 +132,7 @@ func drop_body_part() -> void:
 		return
 
 	state = DROPPED_STATE
+	drift_velocity = Vector2.ZERO
 	fall_speed = 0.0
 	is_on_ground = false
 	pickup_delay_left = PICKUP_DELAY

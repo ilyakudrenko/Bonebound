@@ -8,6 +8,7 @@ const LUNGE_COLOR := Color(1, 0.18, 0.08, 1)
 const ATTACK_COLOR := Color(1, 0.05, 0.05, 1)
 const STUN_COLOR := Color(0.25, 0.45, 1, 1)
 const DETECTION_RANGE := 130.0
+const SAME_LEVEL_DETECTION_HEIGHT := 52.0
 const ATTACK_RANGE := 78.0
 const ATTACK_WINDUP := 0.55
 const LUNGE_DURATION := 0.24
@@ -17,17 +18,32 @@ const ATTACK_COOLDOWN := 0.9
 const STUN_DURATION := 1.0
 const ATTACK_DAMAGE := 1
 const PATROL_SPEED := 55.0
-const PATROL_DISTANCE := 180.0
+const MIN_PATROL_SPEED_MULTIPLIER := 0.9
+const MAX_PATROL_SPEED_MULTIPLIER := 1.1
+const DEFAULT_PATROL_DISTANCE := 180.0
+const GRAVITY := 1200.0
+const MAX_FALL_SPEED := 900.0
+const GROUND_RAY_START_OFFSET := 4.0
+const GROUND_CHECK_DISTANCE := 10.0
 const OBSTACLE_CHECK_DISTANCE := 28.0
+const LEDGE_CHECK_DISTANCE := 22.0
+const LEDGE_CHECK_DEPTH := 28.0
+const BODY_COLLISION_MARGIN := 2.0
+const HORIZONTAL_BODY_CHECK_SHRINK := Vector2(4, 8)
 const IDLE_STATE := "idle"
 const WINDUP_STATE := "windup"
 const LUNGE_STATE := "lunge"
 const ATTACK_STATE := "attack"
 const COOLDOWN_STATE := "cooldown"
 const STUNNED_STATE := "stunned"
+const ENEMY_GROUP := "enemies"
 
 const FLOATING_DAMAGE_NUMBER_SCENE := preload("res://scenes/FloatingDamageNumber.tscn")
 const ENEMY_CORPSE_SCENE := preload("res://scenes/EnemyCorpse.tscn")
+
+@export var patrol_distance: float = DEFAULT_PATROL_DISTANCE
+@export var use_patrol_limits := false
+@export var same_level_detection_height: float = SAME_LEVEL_DETECTION_HEIGHT
 
 var health := STARTING_HEALTH
 var state := IDLE_STATE
@@ -36,18 +52,28 @@ var has_hit_during_attack := false
 var was_parried_during_prepare := false
 var patrol_direction := -1
 var attack_direction := -1
-var spawn_position := Vector2.ZERO
+var patrol_origin := Vector2.ZERO
+var patrol_left_limit := 0.0
+var patrol_right_limit := 0.0
+var patrol_speed_multiplier := 1.0
+var vertical_velocity := 0.0
 var player: Node2D
 
 @onready var visual: ColorRect = $Visual
+@onready var collision_shape: CollisionShape2D = $CollisionShape2D
 
 
 func _ready() -> void:
-	spawn_position = global_position
+	add_to_group(ENEMY_GROUP)
+	setup_personal_patrol_limits()
+	setup_spawn_variation()
 	player = get_tree().current_scene.get_node_or_null("Player") as Node2D
 
 
 func _physics_process(delta: float) -> void:
+	if not update_ground_movement(delta):
+		return
+
 	if player == null:
 		return
 
@@ -120,8 +146,8 @@ func spawn_damage_number(amount: int) -> void:
 func spawn_corpse() -> void:
 	var corpse := ENEMY_CORPSE_SCENE.instantiate()
 
-	get_tree().current_scene.add_child(corpse)
 	corpse.global_position = global_position
+	get_tree().current_scene.call_deferred("add_child", corpse)
 
 
 func start_windup() -> void:
@@ -169,9 +195,10 @@ func stun_for_duration(duration: float) -> void:
 
 func is_player_in_detection_range() -> bool:
 	var horizontal_distance := absf(player.global_position.x - global_position.x)
+	var vertical_distance := absf(player.global_position.y - global_position.y)
 	var player_is_in_front := signf(player.global_position.x - global_position.x) == patrol_direction
 
-	return horizontal_distance <= DETECTION_RANGE and player_is_in_front
+	return horizontal_distance <= DETECTION_RANGE and vertical_distance <= same_level_detection_height and player_is_in_front and has_clear_line_to_player()
 
 
 func is_player_in_attack_range() -> bool:
@@ -211,29 +238,106 @@ func update_patrol(delta: float) -> void:
 	if should_turn_around():
 		turn_around()
 
-	global_position.x += patrol_direction * PATROL_SPEED * delta
+	var movement := patrol_direction * get_current_patrol_speed() * delta
+	if can_move_horizontally(movement):
+		global_position.x += movement
+	else:
+		turn_around()
 
 
 func update_lunge(delta: float) -> void:
-	if is_obstacle_ahead(attack_direction):
+	var movement := attack_direction * LUNGE_SPEED * delta
+	if is_obstacle_ahead(attack_direction) or not can_move_horizontally(movement):
 		state_time_left = 0.0
 		return
 
-	global_position.x += attack_direction * LUNGE_SPEED * delta
+	global_position.x += movement
+
+
+func update_ground_movement(delta: float) -> bool:
+	if is_ground_below():
+		vertical_velocity = 0.0
+		return true
+
+	vertical_velocity = minf(vertical_velocity + GRAVITY * delta, MAX_FALL_SPEED)
+	var fall_distance := vertical_velocity * delta
+	var ground_position = get_ground_position_during_fall(fall_distance)
+
+	if ground_position != null:
+		var landing_position: Vector2 = ground_position as Vector2
+		global_position.y = landing_position.y
+		vertical_velocity = 0.0
+		setup_personal_patrol_limits()
+		return true
+
+	global_position.y += fall_distance
+	return false
+
+
+func is_ground_below() -> bool:
+	var query := PhysicsRayQueryParameters2D.new()
+	query.from = global_position + Vector2(0, -GROUND_RAY_START_OFFSET)
+	query.to = global_position + Vector2(0, GROUND_CHECK_DISTANCE)
+	query.exclude = [get_rid()]
+	query.collision_mask = collision_mask
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+
+	var result := get_world_2d().direct_space_state.intersect_ray(query)
+	return not result.is_empty()
+
+
+func get_ground_position_during_fall(fall_distance: float) -> Variant:
+	var query := PhysicsRayQueryParameters2D.new()
+	query.from = global_position + Vector2(0, -GROUND_RAY_START_OFFSET)
+	query.to = global_position + Vector2(0, fall_distance + GROUND_CHECK_DISTANCE)
+	query.exclude = [get_rid()]
+	query.collision_mask = collision_mask
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+
+	var result := get_world_2d().direct_space_state.intersect_ray(query)
+	if result.is_empty():
+		return null
+
+	return result["position"]
 
 
 func should_turn_around() -> bool:
-	if patrol_direction < 0 and global_position.x <= spawn_position.x - PATROL_DISTANCE:
-		return true
+	if use_patrol_limits:
+		if patrol_direction < 0 and global_position.x <= patrol_left_limit:
+			return true
 
-	if patrol_direction > 0 and global_position.x >= spawn_position.x + PATROL_DISTANCE:
-		return true
+		if patrol_direction > 0 and global_position.x >= patrol_right_limit:
+			return true
 
-	return is_obstacle_ahead(patrol_direction)
+	return is_obstacle_ahead(patrol_direction) or not is_ground_ahead(patrol_direction)
 
 
 func turn_around() -> void:
 	patrol_direction *= -1
+
+
+func setup_personal_patrol_limits() -> void:
+	patrol_origin = global_position
+	patrol_left_limit = patrol_origin.x - patrol_distance
+	patrol_right_limit = patrol_origin.x + patrol_distance
+
+
+func setup_spawn_variation() -> void:
+	patrol_direction = get_random_patrol_direction()
+	patrol_speed_multiplier = randf_range(MIN_PATROL_SPEED_MULTIPLIER, MAX_PATROL_SPEED_MULTIPLIER)
+
+
+func get_current_patrol_speed() -> float:
+	return PATROL_SPEED * patrol_speed_multiplier
+
+
+func get_random_patrol_direction() -> int:
+	if randi() % 2 == 0:
+		return -1
+
+	return 1
 
 
 func get_direction_to_player() -> int:
@@ -246,6 +350,86 @@ func get_direction_to_player() -> int:
 func is_obstacle_ahead(direction: int) -> bool:
 	var ray_start := global_position + Vector2(0, -48)
 	var ray_end := ray_start + Vector2(direction * OBSTACLE_CHECK_DISTANCE, 0)
+	var query := PhysicsRayQueryParameters2D.new()
+	query.from = ray_start
+	query.to = ray_end
+	query.exclude = [get_rid()]
+	query.collision_mask = collision_mask
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+
+	var result := get_world_2d().direct_space_state.intersect_ray(query)
+	if result.is_empty():
+		return false
+
+	var collider := result["collider"] as Node
+	return is_movement_blocker(collider)
+
+
+func can_move_horizontally(movement: float) -> bool:
+	if is_zero_approx(movement):
+		return true
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = get_horizontal_body_check_shape()
+	query.transform = collision_shape.global_transform.translated(Vector2(movement + signf(movement) * BODY_COLLISION_MARGIN, -HORIZONTAL_BODY_CHECK_SHRINK.y * 0.5))
+	query.exclude = [get_rid()]
+	query.collision_mask = collision_mask
+	query.collide_with_bodies = true
+	query.collide_with_areas = true
+
+	var results := get_world_2d().direct_space_state.intersect_shape(query, 16)
+	for result in results:
+		var collider := result["collider"] as Node
+		if is_movement_blocker(collider):
+			return false
+
+	return true
+
+
+func is_movement_blocker(collider: Node) -> bool:
+	if collider == null:
+		return false
+	if collider.is_in_group(ENEMY_GROUP):
+		return false
+	if collider.has_method("blocks_enemy_movement"):
+		return collider.call("blocks_enemy_movement") == true
+
+	return collider is StaticBody2D or collider is CharacterBody2D
+
+
+func has_clear_line_to_player() -> bool:
+	var ray_start := global_position + Vector2(0, -48)
+	var ray_end := player.global_position + Vector2(0, -48)
+	var query := PhysicsRayQueryParameters2D.new()
+	query.from = ray_start
+	query.to = ray_end
+	query.exclude = [get_rid()]
+	query.collision_mask = collision_mask
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+
+	var result := get_world_2d().direct_space_state.intersect_ray(query)
+	if result.is_empty():
+		return true
+
+	var collider := result["collider"] as Node
+	return collider == player
+
+
+func get_horizontal_body_check_shape() -> Shape2D:
+	var rectangle_shape := collision_shape.shape as RectangleShape2D
+	if rectangle_shape == null:
+		return collision_shape.shape
+
+	var check_shape := RectangleShape2D.new()
+	check_shape.size = rectangle_shape.size - HORIZONTAL_BODY_CHECK_SHRINK
+	return check_shape
+
+
+func is_ground_ahead(direction: int) -> bool:
+	var ray_start := global_position + Vector2(direction * LEDGE_CHECK_DISTANCE, -GROUND_RAY_START_OFFSET)
+	var ray_end := ray_start + Vector2(0, LEDGE_CHECK_DEPTH)
 	var query := PhysicsRayQueryParameters2D.new()
 	query.from = ray_start
 	query.to = ray_end

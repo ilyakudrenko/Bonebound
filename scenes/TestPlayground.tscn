@@ -6,6 +6,7 @@
 [ext_resource type="PackedScene" path="res://scenes/SwordPickup.tscn" id="4_sword_pickup"]
 [ext_resource type="PackedScene" path="res://scenes/ShieldPickup.tscn" id="5_shield_pickup"]
 [ext_resource type="PackedScene" path="res://scenes/AxePickup.tscn" id="6_axe_pickup"]
+[ext_resource type="PackedScene" path="res://scenes/Door.tscn" id="7_door"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_floor"]
 size = Vector2(1800, 48)
@@ -31,6 +32,7 @@ size = Vector2(260, 48)
 [node name="TestPlayground" type="Node2D" unique_id=1583882844]
 
 [node name="Background" type="ColorRect" parent="." unique_id=654955633]
+z_index = -100
 offset_left = -200.0
 offset_top = -160.0
 offset_right = 1900.0
@@ -38,10 +40,17 @@ offset_bottom = 720.0
 color = Color(0.08, 0.09, 0.11, 1)
 
 [node name="Player" parent="." unique_id=44135155 instance=ExtResource("1_player")]
+z_index = 0
 position = Vector2(120, 440)
 
 [node name="DummyEnemy" parent="." unique_id=1548625802 instance=ExtResource("2_dummy")]
 position = Vector2(1010, 440)
+
+[node name="DummyEnemy2" parent="." unique_id=588854709 instance=ExtResource("2_dummy")]
+position = Vector2(1955, 440)
+
+[node name="DummyEnemy3" parent="." unique_id=808931767 instance=ExtResource("2_dummy")]
+position = Vector2(870, 163)
 
 [node name="SwordPickup" parent="." unique_id=381289887 instance=ExtResource("4_sword_pickup")]
 position = Vector2(799, 430)
@@ -62,6 +71,7 @@ target_path = NodePath("../Player")
 
 [node name="Floor" type="StaticBody2D" parent="World" unique_id=1054553109]
 position = Vector2(900, 464)
+scale = Vector2(1.48, 1)
 
 [node name="Visual" type="ColorRect" parent="World/Floor" unique_id=1781585809]
 offset_left = -900.0
@@ -138,6 +148,20 @@ color = Color(0.24, 0.45, 0.52, 1)
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/RaisedPlatform" unique_id=1839183518]
 shape = SubResource("RectangleShape2D_platform")
 
+[node name="RaisedPlatform2" type="StaticBody2D" parent="World" unique_id=2103789126]
+position = Vector2(1910, 321)
+scale = Vector2(1.6800196, 1)
+
+[node name="Visual" type="ColorRect" parent="World/RaisedPlatform2" unique_id=1452845358]
+offset_left = -110.0
+offset_top = -14.0
+offset_right = 110.0
+offset_bottom = 14.0
+color = Color(0.24, 0.45, 0.52, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/RaisedPlatform2" unique_id=2013939513]
+shape = SubResource("RectangleShape2D_platform")
+
 [node name="RollTunnelCeiling" type="StaticBody2D" parent="World" unique_id=1639905402]
 position = Vector2(1320, 368)
 
@@ -150,3 +174,6 @@ color = Color(0.34, 0.36, 0.4, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/RollTunnelCeiling" unique_id=287467275]
 shape = SubResource("RectangleShape2D_tunnel_ceiling")
+
+[node name="Door" parent="World" unique_id=1121389956 instance=ExtResource("7_door")]
+position = Vector2(1750, 440)

@@ -26,6 +26,11 @@ func _on_body_entered(body: Node) -> void:
 	if not body.has_method("exchange_main_weapon"):
 		return
 
+	if body.has_method("can_use_main_weapon") and not body.call("can_use_main_weapon", "axe"):
+		if body.has_method("show_feedback_message"):
+			body.call("show_feedback_message", "Need enemy arm")
+		return
+
 	if body.has_method("has_main_weapon") and body.call("has_main_weapon"):
 		nearby_player = body
 		show_prompt()

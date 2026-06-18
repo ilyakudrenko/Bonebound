@@ -39,7 +39,7 @@ const SWORD_HITBOX_OFFSET := Vector2(52, -54)
 const AXE_ATTACK_DAMAGE := 3
 const AXE_STARTUP_DURATION := 0.18
 const AXE_ACTIVE_DURATION := 0.12
-const AXE_RECOVERY_DURATION := 0.45
+const AXE_RECOVERY_DURATION := 0.75
 const AXE_ATTACK_MOVE_MULTIPLIER := 0.22
 const AXE_HITBOX_SIZE := Vector2(82, 58)
 const AXE_HITBOX_OFFSET := Vector2(58, -54)
@@ -49,6 +49,10 @@ const SHIELD_PARRY_DURATION := 0.14
 const SHIELD_BLOCK_COLOR := Color(0.14, 0.62, 0.78, 1)
 const SHIELD_PARRY_COLOR := Color(0.75, 0.95, 1, 1)
 const STARTING_HEALTH := 5
+const HEAD_DEATH_PIECE_SIZE := Vector2(24, 24)
+const TORSO_DEATH_PIECE_SIZE := Vector2(28, 40)
+const ARM_DEATH_PIECE_SIZE := Vector2(12, 36)
+const LEG_DEATH_PIECE_SIZE := Vector2(12, 32)
 const SKELETON_ARM_COLOR := Color(1, 0.05, 0.05, 1)
 const SKELETON_LEG_COLOR := Color(0.05, 0.85, 0.15, 1)
 const ENEMY_ARM_COLOR := Color(1, 0.35, 0.75, 1)
@@ -56,6 +60,7 @@ const ENEMY_LEG_COLOR := Color(0.45, 0.85, 1, 1)
 const ENEMY_LEG_DOUBLE_JUMPS := 1
 
 const THROWN_BODY_PART_SCENE := preload("res://scenes/ThrownBodyPart.tscn")
+const FLOATING_FEEDBACK_MESSAGE_SCENE := preload("res://scenes/FloatingFeedbackMessage.tscn")
 
 var facing_direction := 1
 var is_rolling := false
@@ -74,6 +79,7 @@ var shield_use_time_left := 0.0
 var shield_parry_time_left := 0.0
 var health := STARTING_HEALTH
 var double_jumps_left := 0
+var is_dead := false
 
 var has_head := true
 var has_left_arm := true
@@ -95,6 +101,7 @@ var previous_key_states := {}
 
 @onready var body_parts: Node2D = $BodyParts
 @onready var head: ColorRect = $BodyParts/Head
+@onready var torso: ColorRect = $BodyParts/Torso
 @onready var left_arm: ColorRect = $BodyParts/LeftArm
 @onready var right_arm: ColorRect = $BodyParts/RightArm
 @onready var left_leg: ColorRect = $BodyParts/LeftLeg
@@ -109,6 +116,9 @@ var previous_key_states := {}
 
 
 func _physics_process(delta: float) -> void:
+	if is_dead:
+		return
+
 	handle_detach_input()
 	update_sword_attack(delta)
 	update_shield_use(delta)
@@ -198,6 +208,10 @@ func update_roll_state(delta: float) -> void:
 
 func can_roll() -> bool:
 	return get_leg_count() > 0 and roll_cooldown_left <= 0.0
+
+
+func is_door_smashing_roll() -> bool:
+	return is_rolling and not is_dead
 
 
 func start_roll() -> void:
@@ -353,6 +367,10 @@ func pickup_axe() -> bool:
 
 func exchange_main_weapon(new_weapon_type: String) -> String:
 	if not has_right_arm:
+		show_feedback_message("Need right arm")
+		return "blocked"
+	if not can_use_main_weapon(new_weapon_type):
+		show_feedback_message("Need enemy arm")
 		return "blocked"
 
 	var old_weapon_type := get_main_weapon_type()
@@ -367,8 +385,28 @@ func equip_main_weapon(weapon_type: String) -> void:
 	axe_icon.visible = has_axe
 
 
+func can_use_main_weapon(weapon_type: String) -> bool:
+	var weapon_weight := get_weapon_weight(weapon_type)
+
+	if weapon_weight == "heavy":
+		return has_strong_right_arm()
+
+	return true
+
+
+func get_weapon_weight(weapon_type: String) -> String:
+	if weapon_type == "axe":
+		return "heavy"
+
+	return "light"
+
+
+func has_strong_right_arm() -> bool:
+	return has_right_arm and right_arm_part_id.begins_with("enemy_")
+
+
 func can_attack_with_sword() -> bool:
-	return has_main_weapon() and has_right_arm and not is_sword_attacking
+	return has_main_weapon() and has_right_arm and can_use_main_weapon(get_main_weapon_type()) and not is_sword_attacking
 
 
 func attack_with_sword() -> void:
@@ -388,7 +426,7 @@ func update_sword_attack(delta: float) -> void:
 	if not is_sword_attacking:
 		return
 
-	if not has_main_weapon() or not has_right_arm:
+	if not has_main_weapon() or not has_right_arm or not can_use_main_weapon(get_main_weapon_type()):
 		stop_sword_attack()
 		return
 
@@ -561,6 +599,7 @@ func update_weapon_visual_shape() -> void:
 
 func pickup_shield() -> bool:
 	if not has_left_arm:
+		show_feedback_message("Need left arm")
 		return false
 
 	has_shield = true
@@ -617,6 +656,9 @@ func is_shield_parrying() -> bool:
 
 
 func take_player_damage(amount: int, attacker: Node = null) -> void:
+	if is_dead:
+		return
+
 	if is_shield_parrying():
 		if attacker != null and attacker.has_method("take_damage"):
 			attacker.call("take_damage", 1)
@@ -628,10 +670,63 @@ func take_player_damage(amount: int, attacker: Node = null) -> void:
 	health = maxi(health - amount, 0)
 	update_health_bar()
 
+	if health <= 0:
+		die()
+
 
 func update_health_bar() -> void:
 	var health_ratio := float(health) / float(STARTING_HEALTH)
 	health_bar.size.x = 80.0 * health_ratio
+
+
+func show_feedback_message(message: String) -> void:
+	var feedback_message := FLOATING_FEEDBACK_MESSAGE_SCENE.instantiate()
+
+	feedback_message.setup(message)
+	get_tree().current_scene.add_child(feedback_message)
+	feedback_message.global_position = global_position + Vector2(0, -118)
+
+
+func die() -> void:
+	if is_dead:
+		return
+
+	is_dead = true
+	velocity = Vector2.ZERO
+	stop_sword_attack()
+	stop_shield_use()
+	stop_roll()
+	clear_main_weapon()
+	has_shield = false
+	shield_icon.hide()
+	spawn_death_pieces()
+	body_parts.hide()
+	collision_shape.set_deferred("disabled", true)
+	show_feedback_message("You died")
+
+
+func spawn_death_pieces() -> void:
+	if has_head:
+		spawn_death_piece(head.global_position, head.color, HEAD_DEATH_PIECE_SIZE, Vector2(20, -180))
+
+	spawn_death_piece(torso.global_position, torso.color, TORSO_DEATH_PIECE_SIZE, Vector2(0, -80))
+
+	if has_left_arm:
+		spawn_death_piece(left_arm.global_position, left_arm_part_color, ARM_DEATH_PIECE_SIZE, Vector2(-180, -130))
+	if has_right_arm:
+		spawn_death_piece(right_arm.global_position, right_arm_part_color, ARM_DEATH_PIECE_SIZE, Vector2(180, -130))
+	if has_left_leg:
+		spawn_death_piece(left_leg.global_position, left_leg_part_color, LEG_DEATH_PIECE_SIZE, Vector2(-90, -70))
+	if has_right_leg:
+		spawn_death_piece(right_leg.global_position, right_leg_part_color, LEG_DEATH_PIECE_SIZE, Vector2(90, -70))
+
+
+func spawn_death_piece(piece_position: Vector2, piece_color: Color, piece_size: Vector2, launch_velocity: Vector2) -> void:
+	var death_piece := THROWN_BODY_PART_SCENE.instantiate()
+
+	get_tree().current_scene.add_child(death_piece)
+	death_piece.global_position = piece_position
+	death_piece.setup_death_piece(piece_color, piece_size, launch_velocity)
 
 
 func detach_left_arm() -> void:
@@ -665,6 +760,10 @@ func detach_right_arm() -> void:
 
 
 func sacrifice_leg() -> void:
+	if has_enemy_legs():
+		show_feedback_message("Enemy legs cannot detach")
+		return
+
 	var leg_count := get_leg_count()
 
 	if leg_count == 0:
