@@ -8,6 +8,7 @@ const FALL_GRAVITY := 900.0
 const MAX_FALL_SPEED := 600.0
 const PICKUP_DELAY := 0.35
 const THROWN_ARM_STUN_DURATION := 1.1
+const TERRAIN_COLLISION_MASK := 1
 const FLYING_STATE := "flying"
 const DROPPED_STATE := "dropped"
 
@@ -25,6 +26,7 @@ var fall_speed := 0.0
 var drift_velocity := Vector2.ZERO
 var is_on_ground := false
 var pickup_delay_left := 0.0
+var last_terrain_hit_normal := Vector2.ZERO
 
 @onready var visual: ColorRect = $Visual
 
@@ -47,7 +49,15 @@ func _physics_process(delta: float) -> void:
 
 	if state == FLYING_STATE:
 		flight_velocity.y += THROW_GRAVITY * delta
-		global_position += flight_velocity * delta
+		var next_position := global_position + flight_velocity * delta
+
+		if move_until_terrain_hit(next_position):
+			var hit_normal := last_terrain_hit_normal
+			drop_body_part()
+			if hit_normal.y < -0.5:
+				land_body_part()
+			return
+
 		rotation = flight_velocity.angle()
 		lifetime_left -= delta
 
@@ -55,8 +65,9 @@ func _physics_process(delta: float) -> void:
 			drop_body_part()
 	elif state == DROPPED_STATE and not is_on_ground:
 		fall_speed = minf(fall_speed + FALL_GRAVITY * delta, MAX_FALL_SPEED)
-		global_position.x += drift_velocity.x * delta
-		global_position.y += fall_speed * delta
+		var next_position := global_position + Vector2(drift_velocity.x, fall_speed) * delta
+
+		move_until_terrain_hit(next_position)
 
 
 func setup(new_direction: Vector2, new_color: Color, new_damage: int, new_body_part_type: String, new_carried_item_type: String = "", new_body_part_id: String = "") -> void:
@@ -117,13 +128,13 @@ func handle_collision(other: Node) -> void:
 				other.call("stun")
 
 			drop_body_part()
-		elif other is StaticBody2D:
+		elif is_solid_level_body(other):
 			drop_body_part()
 			land_body_part()
 	elif state == DROPPED_STATE:
 		if is_recoverable and pickup_delay_left <= 0.0 and other.has_method("recover_body_part") and other.call("recover_body_part", body_part_type, carried_item_type, body_part_id, part_color):
 			queue_free()
-		elif other is StaticBody2D:
+		elif is_solid_level_body(other):
 			land_body_part()
 
 
@@ -145,3 +156,51 @@ func drop_body_part() -> void:
 func land_body_part() -> void:
 	fall_speed = 0.0
 	is_on_ground = true
+
+
+func move_until_terrain_hit(next_position: Vector2) -> bool:
+	var hit := get_terrain_hit(global_position, next_position)
+
+	if hit.is_empty():
+		last_terrain_hit_normal = Vector2.ZERO
+		global_position = next_position
+		return false
+
+	var hit_position := hit["position"] as Vector2
+	var hit_normal := hit["normal"] as Vector2
+
+	last_terrain_hit_normal = hit_normal
+	global_position = hit_position + hit_normal * get_collision_half_extent(hit_normal)
+
+	if hit_normal.y < -0.5:
+		land_body_part()
+
+	return true
+
+
+func get_terrain_hit(from_position: Vector2, to_position: Vector2) -> Dictionary:
+	var query := PhysicsRayQueryParameters2D.create(from_position, to_position)
+
+	query.collision_mask = TERRAIN_COLLISION_MASK
+	query.collide_with_areas = false
+	query.collide_with_bodies = true
+	query.exclude = [self]
+
+	return get_world_2d().direct_space_state.intersect_ray(query)
+
+
+func get_collision_half_extent(hit_normal: Vector2) -> float:
+	var collision_shape := $CollisionShape2D
+	var rectangle_shape := collision_shape.shape as RectangleShape2D
+
+	if rectangle_shape == null:
+		return 1.0
+
+	if absf(hit_normal.x) > absf(hit_normal.y):
+		return rectangle_shape.size.x * 0.5
+
+	return rectangle_shape.size.y * 0.5
+
+
+func is_solid_level_body(other: Node) -> bool:
+	return other is StaticBody2D or other is TileMap

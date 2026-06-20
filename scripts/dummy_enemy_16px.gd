@@ -7,29 +7,31 @@ const WARNING_COLOR := Color(1, 0.35, 0.12, 1)
 const LUNGE_COLOR := Color(1, 0.18, 0.08, 1)
 const ATTACK_COLOR := Color(1, 0.05, 0.05, 1)
 const STUN_COLOR := Color(0.25, 0.45, 1, 1)
-const DETECTION_RANGE := 130.0
-const SAME_LEVEL_DETECTION_HEIGHT := 52.0
-const ATTACK_RANGE := 78.0
+const DETECTION_RANGE := 80.0
+const SAME_LEVEL_DETECTION_HEIGHT := 30.0
+const ATTACK_RANGE := 42.0
 const ATTACK_WINDUP := 0.55
 const LUNGE_DURATION := 0.24
-const LUNGE_SPEED := 360.0
+const LUNGE_SPEED := 220.0
 const ATTACK_DURATION := 0.12
 const ATTACK_COOLDOWN := 0.9
 const STUN_DURATION := 1.0
 const ATTACK_DAMAGE := 1
-const PATROL_SPEED := 55.0
+const PATROL_SPEED := 34.0
 const MIN_PATROL_SPEED_MULTIPLIER := 0.9
 const MAX_PATROL_SPEED_MULTIPLIER := 1.1
-const DEFAULT_PATROL_DISTANCE := 180.0
-const GRAVITY := 1200.0
-const MAX_FALL_SPEED := 900.0
-const GROUND_RAY_START_OFFSET := 4.0
-const GROUND_CHECK_DISTANCE := 10.0
-const OBSTACLE_CHECK_DISTANCE := 28.0
-const LEDGE_CHECK_DISTANCE := 22.0
-const LEDGE_CHECK_DEPTH := 28.0
-const BODY_COLLISION_MARGIN := 2.0
-const HORIZONTAL_BODY_CHECK_SHRINK := Vector2(4, 8)
+const DEFAULT_PATROL_DISTANCE := 96.0
+const GRAVITY := 800.0
+const MAX_FALL_SPEED := 600.0
+const GROUND_RAY_START_OFFSET := 2.0
+const GROUND_CHECK_DISTANCE := 8.0
+const OBSTACLE_CHECK_DISTANCE := 16.0
+const LEDGE_CHECK_DISTANCE := 12.0
+const LEDGE_CHECK_DEPTH := 18.0
+const BODY_COLLISION_MARGIN := 1.0
+const BODY_CENTER_OFFSET := -24.0
+const DAMAGE_NUMBER_OFFSET := Vector2(0, -54)
+const HORIZONTAL_BODY_CHECK_SHRINK := Vector2(2, 4)
 const IDLE_STATE := "idle"
 const WINDUP_STATE := "windup"
 const LUNGE_STATE := "lunge"
@@ -140,7 +142,7 @@ func spawn_damage_number(amount: int) -> void:
 
 	damage_number.setup(amount)
 	get_tree().current_scene.add_child(damage_number)
-	damage_number.global_position = global_position + Vector2(0, -108)
+	damage_number.global_position = global_position + DAMAGE_NUMBER_OFFSET
 
 
 func spawn_corpse() -> void:
@@ -203,7 +205,7 @@ func is_player_in_detection_range() -> bool:
 
 func is_player_in_attack_range() -> bool:
 	var horizontal_distance := absf(player.global_position.x - global_position.x)
-	var vertical_distance := absf((player.global_position.y - 48.0) - (global_position.y - 48.0))
+	var vertical_distance := absf((player.global_position.y + BODY_CENTER_OFFSET) - (global_position.y + BODY_CENTER_OFFSET))
 
 	return is_player_in_detection_range() and horizontal_distance <= ATTACK_RANGE and vertical_distance <= 70.0
 
@@ -348,7 +350,7 @@ func get_direction_to_player() -> int:
 
 
 func is_obstacle_ahead(direction: int) -> bool:
-	var ray_start := global_position + Vector2(0, -48)
+	var ray_start := global_position + Vector2(0, BODY_CENTER_OFFSET)
 	var ray_end := ray_start + Vector2(direction * OBSTACLE_CHECK_DISTANCE, 0)
 	var query := PhysicsRayQueryParameters2D.new()
 	query.from = ray_start
@@ -399,8 +401,8 @@ func is_movement_blocker(collider: Node) -> bool:
 
 
 func has_clear_line_to_player() -> bool:
-	var ray_start := global_position + Vector2(0, -48)
-	var ray_end := player.global_position + Vector2(0, -48)
+	var ray_start := global_position + Vector2(0, BODY_CENTER_OFFSET)
+	var ray_end := player.global_position + Vector2(0, BODY_CENTER_OFFSET)
 	var query := PhysicsRayQueryParameters2D.new()
 	query.from = ray_start
 	query.to = ray_end

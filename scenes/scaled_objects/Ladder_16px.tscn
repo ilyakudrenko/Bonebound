@@ -1,0 +1,24 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Texture2D" path="res://assets/Graveyard [16x16]/Props&Objects/Ladder.png" id="1_ladder_texture"]
+[ext_resource type="Script" path="res://scripts/ladder_16px.gd" id="2_ladder_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_climb_area"]
+size = Vector2(22, 80)
+
+[node name="Ladder16px" type="Node2D"]
+z_index = 1
+script = ExtResource("2_ladder_script")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -32)
+texture = ExtResource("1_ladder_texture")
+
+[node name="ClimbArea" type="Area2D" parent="."]
+position = Vector2(0, -32)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClimbArea"]
+shape = SubResource("RectangleShape2D_climb_area")
+
+[connection signal="body_entered" from="ClimbArea" to="." method="_on_climb_area_body_entered"]
+[connection signal="body_exited" from="ClimbArea" to="." method="_on_climb_area_body_exited"]

@@ -177,3 +177,6 @@ shape = SubResource("RectangleShape2D_tunnel_ceiling")
 
 [node name="Door" parent="World" unique_id=1121389956 instance=ExtResource("7_door")]
 position = Vector2(1750, 440)
+
+[node name="Door2" parent="World" unique_id=521281490 instance=ExtResource("7_door")]
+position = Vector2(2118, 440)

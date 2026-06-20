@@ -1,31 +1,34 @@
 extends CharacterBody2D
 
-const SPEED := 220.0
-const JUMP_VELOCITY := -460.0
-const DOUBLE_JUMP_VELOCITY := -420.0
-const GRAVITY := 1200.0
+const SPEED := 120.0
+const JUMP_VELOCITY := -285.0
+const DOUBLE_JUMP_VELOCITY := -260.0
+const GRAVITY := 800.0
 const ONE_LEG_SPEED_MULTIPLIER := 0.65
 const NO_LEGS_SPEED_MULTIPLIER := 0.25
 const ONE_LEG_JUMP_MULTIPLIER := 0.75
-const CRAWLER_JUMP_VELOCITY := -180.0
-const FIRST_LEG_SACRIFICE_JUMP := -660.0
-const LAST_LEG_SACRIFICE_JUMP := -460.0
+const CRAWLER_JUMP_VELOCITY := -110.0
+const FIRST_LEG_SACRIFICE_JUMP := -390.0
+const LAST_LEG_SACRIFICE_JUMP := -290.0
+const LADDER_CLIMB_UP_SPEED := 80.0
+const LADDER_SLIDE_DOWN_SPEED := 24.0
+const LADDER_DESCEND_SPEED := 96.0
 const ARM_THROW_DAMAGE := 1
-const ARM_THROW_OFFSET := Vector2(36, -52)
-const LEG_DROP_OFFSET := Vector2(0, -12)
+const ARM_THROW_OFFSET := Vector2(18, -26)
+const LEG_DROP_OFFSET := Vector2(0, -6)
 const NORMAL_BODY_PARTS_POSITION := Vector2.ZERO
-const CRAWLER_BODY_PARTS_POSITION := Vector2(0, 32)
-const NORMAL_COLLISION_POSITION := Vector2(0, -48)
-const CRAWLER_COLLISION_POSITION := Vector2(0, -32)
-const ROLL_COLLISION_POSITION := Vector2(0, -20)
-const NORMAL_COLLISION_SIZE := Vector2(40, 96)
-const CRAWLER_COLLISION_SIZE := Vector2(40, 64)
-const ROLL_COLLISION_SIZE := Vector2(48, 40)
+const CRAWLER_BODY_PARTS_POSITION := Vector2(0, 16)
+const NORMAL_COLLISION_POSITION := Vector2(0, -24)
+const CRAWLER_COLLISION_POSITION := Vector2(0, -16)
+const ROLL_COLLISION_POSITION := Vector2(0, -10)
+const NORMAL_COLLISION_SIZE := Vector2(20, 48)
+const CRAWLER_COLLISION_SIZE := Vector2(20, 32)
+const ROLL_COLLISION_SIZE := Vector2(24, 20)
 const ROLL_BODY_PARTS_POSITION := Vector2.ZERO
 const NORMAL_BODY_PARTS_SCALE_Y := 1.0
 const ROLL_BODY_PARTS_SCALE_Y := 0.42
-const ROLL_SPEED := 430.0
-const FORCED_TUNNEL_ROLL_SPEED := 300.0
+const ROLL_SPEED := 220.0
+const FORCED_TUNNEL_ROLL_SPEED := 150.0
 const ONE_LEG_ROLL_SPEED_MULTIPLIER := 0.65
 const ROLL_DURATION := 0.32
 const AIR_ROLL_DURATION := 0.42
@@ -35,32 +38,35 @@ const SWORD_STARTUP_DURATION := 0.08
 const SWORD_ACTIVE_DURATION := 0.08
 const SWORD_RECOVERY_DURATION := 0.22
 const SWORD_ATTACK_MOVE_MULTIPLIER := 0.45
-const SWORD_HITBOX_SIZE := Vector2(72, 48)
-const SWORD_HITBOX_OFFSET := Vector2(52, -54)
+const SWORD_HITBOX_SIZE := Vector2(36, 24)
+const SWORD_HITBOX_OFFSET := Vector2(26, -27)
 const AXE_ATTACK_DAMAGE := 3
 const AXE_STARTUP_DURATION := 0.18
 const AXE_ACTIVE_DURATION := 0.12
 const AXE_RECOVERY_DURATION := 0.75
 const AXE_ATTACK_MOVE_MULTIPLIER := 0.22
-const AXE_HITBOX_SIZE := Vector2(82, 58)
-const AXE_HITBOX_OFFSET := Vector2(58, -54)
+const AXE_HITBOX_SIZE := Vector2(42, 30)
+const AXE_HITBOX_OFFSET := Vector2(29, -27)
 const SHIELD_THROW_DAMAGE_BONUS := 1
 const SHIELD_USE_DURATION := 0.35
 const SHIELD_PARRY_DURATION := 0.14
 const SHIELD_BLOCK_COLOR := Color(0.14, 0.62, 0.78, 1)
 const SHIELD_PARRY_COLOR := Color(0.75, 0.95, 1, 1)
 const STARTING_HEALTH := 5
-const HEAD_DEATH_PIECE_SIZE := Vector2(24, 24)
-const TORSO_DEATH_PIECE_SIZE := Vector2(28, 40)
-const ARM_DEATH_PIECE_SIZE := Vector2(12, 36)
-const LEG_DEATH_PIECE_SIZE := Vector2(12, 32)
+const HAZARD_COLLISION_MASK := 16
+const SPIKE_DAMAGE := 1
+const SPIKE_DAMAGE_COOLDOWN := 0.75
+const HEAD_DEATH_PIECE_SIZE := Vector2(12, 12)
+const TORSO_DEATH_PIECE_SIZE := Vector2(14, 20)
+const ARM_DEATH_PIECE_SIZE := Vector2(6, 18)
+const LEG_DEATH_PIECE_SIZE := Vector2(6, 16)
 const SKELETON_ARM_COLOR := Color(1, 0.05, 0.05, 1)
 const SKELETON_LEG_COLOR := Color(0.05, 0.85, 0.15, 1)
 const ENEMY_ARM_COLOR := Color(1, 0.35, 0.75, 1)
 const ENEMY_LEG_COLOR := Color(0.45, 0.85, 1, 1)
 const ENEMY_LEG_DOUBLE_JUMPS := 1
 
-const THROWN_BODY_PART_SCENE := preload("res://scenes/ThrownBodyPart.tscn")
+const THROWN_BODY_PART_SCENE := preload("res://scenes/scaled_objects/ThrownBodyPart_16px.tscn")
 const FLOATING_FEEDBACK_MESSAGE_SCENE := preload("res://scenes/FloatingFeedbackMessage.tscn")
 
 var facing_direction := 1
@@ -81,6 +87,9 @@ var shield_parry_time_left := 0.0
 var health := STARTING_HEALTH
 var double_jumps_left := 0
 var is_dead := false
+var ladder_overlap_count := 0
+var is_climbing_ladder := false
+var spike_damage_cooldown_left := 0.0
 
 var has_head := true
 var has_left_arm := true
@@ -124,14 +133,22 @@ func _physics_process(delta: float) -> void:
 	update_sword_attack(delta)
 	update_shield_use(delta)
 	update_roll_state(delta)
+	update_hazard_damage_cooldown(delta)
 
 	if is_on_floor():
 		double_jumps_left = get_max_double_jumps()
 
-	if not is_on_floor():
-		velocity.y += GRAVITY * delta
-
 	var direction := get_move_direction()
+	var wants_ladder_climb := wants_to_use_ladder()
+
+	if can_start_ladder_climb() and wants_ladder_climb:
+		start_ladder_climb()
+
+	if is_climbing_ladder and ladder_overlap_count <= 0:
+		stop_ladder_climb()
+
+	if not is_on_floor() and not is_climbing_ladder:
+		velocity.y += GRAVITY * delta
 
 	if not is_rolling:
 		if direction != 0.0:
@@ -139,18 +156,23 @@ func _physics_process(delta: float) -> void:
 			update_body_parts_scale()
 
 	if is_key_just_pressed(KEY_SPACE):
-		try_jump()
+		if not is_climbing_ladder:
+			try_jump()
 
 	update_body_pose()
 
 	if is_rolling:
 		velocity.x = facing_direction * get_current_roll_speed()
+	elif is_climbing_ladder:
+		velocity.x = direction * get_current_speed()
+		velocity.y = get_ladder_vertical_speed()
 	else:
 		velocity.x = direction * get_current_speed()
 		if is_sword_attacking:
 			velocity.x *= get_weapon_attack_move_multiplier()
 
 	move_and_slide()
+	check_spike_hazards()
 
 
 func handle_detach_input() -> void:
@@ -188,6 +210,49 @@ func get_move_direction() -> float:
 	return direction
 
 
+func wants_to_use_ladder() -> bool:
+	return Input.is_key_pressed(KEY_SPACE) or Input.is_key_pressed(KEY_S)
+
+
+func get_ladder_vertical_speed() -> float:
+	if Input.is_key_pressed(KEY_S):
+		return LADDER_DESCEND_SPEED
+	if Input.is_key_pressed(KEY_SPACE):
+		return -LADDER_CLIMB_UP_SPEED
+
+	return LADDER_SLIDE_DOWN_SPEED
+
+
+func enter_ladder_area() -> void:
+	ladder_overlap_count += 1
+
+
+func exit_ladder_area() -> void:
+	ladder_overlap_count = maxi(ladder_overlap_count - 1, 0)
+
+	if ladder_overlap_count == 0:
+		stop_ladder_climb()
+
+
+func can_start_ladder_climb() -> bool:
+	return ladder_overlap_count > 0 and not is_dead and not is_rolling
+
+
+func start_ladder_climb() -> void:
+	is_climbing_ladder = true
+	velocity.y = 0.0
+	stop_roll()
+
+
+func stop_ladder_climb() -> void:
+	is_climbing_ladder = false
+
+
+func jump_from_ladder() -> void:
+	stop_ladder_climb()
+	velocity.y = get_current_jump_velocity()
+
+
 func update_roll_state(delta: float) -> void:
 	if roll_cooldown_left > 0.0:
 		roll_cooldown_left -= delta
@@ -203,12 +268,27 @@ func update_roll_state(delta: float) -> void:
 
 		return
 
-	if is_key_just_pressed(KEY_SHIFT) and can_roll():
+	var shift_was_pressed := is_key_just_pressed(KEY_SHIFT)
+
+	if shift_was_pressed and can_roll_from_ladder():
+		roll_from_ladder()
+		return
+
+	if shift_was_pressed and can_roll():
 		start_roll()
 
 
 func can_roll() -> bool:
-	return get_leg_count() > 0 and roll_cooldown_left <= 0.0
+	return get_leg_count() > 0 and roll_cooldown_left <= 0.0 and not is_climbing_ladder
+
+
+func can_roll_from_ladder() -> bool:
+	return is_climbing_ladder and get_move_direction() != 0.0 and get_leg_count() > 0 and roll_cooldown_left <= 0.0
+
+
+func roll_from_ladder() -> void:
+	stop_ladder_climb()
+	start_roll()
 
 
 func is_door_smashing_roll() -> bool:
@@ -586,16 +666,16 @@ func get_weapon_recovery_color() -> Color:
 
 func update_weapon_visual_shape() -> void:
 	if has_axe:
-		sword_visual.offset_left = 22.0
-		sword_visual.offset_top = -72.0
-		sword_visual.offset_right = 82.0
-		sword_visual.offset_bottom = -40.0
+		sword_visual.offset_left = 11.0
+		sword_visual.offset_top = -36.0
+		sword_visual.offset_right = 41.0
+		sword_visual.offset_bottom = -20.0
 		return
 
-	sword_visual.offset_left = 24.0
-	sword_visual.offset_top = -60.0
-	sword_visual.offset_right = 76.0
-	sword_visual.offset_bottom = -52.0
+	sword_visual.offset_left = 12.0
+	sword_visual.offset_top = -30.0
+	sword_visual.offset_right = 38.0
+	sword_visual.offset_bottom = -26.0
 
 
 func pickup_shield() -> bool:
@@ -675,6 +755,40 @@ func take_player_damage(amount: int, attacker: Node = null) -> void:
 		die()
 
 
+func update_hazard_damage_cooldown(delta: float) -> void:
+	if spike_damage_cooldown_left > 0.0:
+		spike_damage_cooldown_left -= delta
+
+
+func check_spike_hazards() -> void:
+	if spike_damage_cooldown_left > 0.0:
+		return
+
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = collision_shape.shape
+	query.transform = collision_shape.global_transform
+	query.collision_mask = HAZARD_COLLISION_MASK
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+
+	var results := get_world_2d().direct_space_state.intersect_shape(query, 4)
+
+	if not results.is_empty():
+		take_spike_damage()
+
+
+func take_spike_damage() -> void:
+	if is_dead:
+		return
+
+	spike_damage_cooldown_left = SPIKE_DAMAGE_COOLDOWN
+	health = maxi(health - SPIKE_DAMAGE, 0)
+	update_health_bar()
+
+	if health <= 0:
+		die()
+
+
 func update_health_bar() -> void:
 	var health_ratio := float(health) / float(STARTING_HEALTH)
 	health_bar.size.x = 80.0 * health_ratio
@@ -685,7 +799,7 @@ func show_feedback_message(message: String) -> void:
 
 	feedback_message.setup(message)
 	get_tree().current_scene.add_child(feedback_message)
-	feedback_message.global_position = global_position + Vector2(0, -118)
+	feedback_message.global_position = global_position + Vector2(0, -60)
 
 
 func die() -> void:
@@ -708,18 +822,18 @@ func die() -> void:
 
 func spawn_death_pieces() -> void:
 	if has_head:
-		spawn_death_piece(head.global_position, head.color, HEAD_DEATH_PIECE_SIZE, Vector2(20, -180))
+		spawn_death_piece(head.global_position, head.color, HEAD_DEATH_PIECE_SIZE, Vector2(10, -90))
 
-	spawn_death_piece(torso.global_position, torso.color, TORSO_DEATH_PIECE_SIZE, Vector2(0, -80))
+	spawn_death_piece(torso.global_position, torso.color, TORSO_DEATH_PIECE_SIZE, Vector2(0, -40))
 
 	if has_left_arm:
-		spawn_death_piece(left_arm.global_position, left_arm_part_color, ARM_DEATH_PIECE_SIZE, Vector2(-180, -130))
+		spawn_death_piece(left_arm.global_position, left_arm_part_color, ARM_DEATH_PIECE_SIZE, Vector2(-90, -65))
 	if has_right_arm:
-		spawn_death_piece(right_arm.global_position, right_arm_part_color, ARM_DEATH_PIECE_SIZE, Vector2(180, -130))
+		spawn_death_piece(right_arm.global_position, right_arm_part_color, ARM_DEATH_PIECE_SIZE, Vector2(90, -65))
 	if has_left_leg:
-		spawn_death_piece(left_leg.global_position, left_leg_part_color, LEG_DEATH_PIECE_SIZE, Vector2(-90, -70))
+		spawn_death_piece(left_leg.global_position, left_leg_part_color, LEG_DEATH_PIECE_SIZE, Vector2(-45, -35))
 	if has_right_leg:
-		spawn_death_piece(right_leg.global_position, right_leg_part_color, LEG_DEATH_PIECE_SIZE, Vector2(90, -70))
+		spawn_death_piece(right_leg.global_position, right_leg_part_color, LEG_DEATH_PIECE_SIZE, Vector2(45, -35))
 
 
 func spawn_death_piece(piece_position: Vector2, piece_color: Color, piece_size: Vector2, launch_velocity: Vector2) -> void:
@@ -917,14 +1031,14 @@ func throw_body_part(body_part_type: String, body_part_id: String, part_color: C
 	var throw_direction := Vector2(facing_direction, 0)
 	var throw_damage := get_throw_damage(carried_item_type)
 
-	thrown_part.setup(throw_direction, part_color, throw_damage, body_part_type, carried_item_type, body_part_id)
 	get_tree().current_scene.add_child(thrown_part)
 	thrown_part.global_position = global_position + Vector2(ARM_THROW_OFFSET.x * facing_direction, ARM_THROW_OFFSET.y)
+	thrown_part.setup(throw_direction, part_color, throw_damage, body_part_type, carried_item_type, body_part_id)
 
 
 func drop_body_part(body_part_type: String, body_part_id: String, part_color: Color) -> void:
 	var dropped_part := THROWN_BODY_PART_SCENE.instantiate()
 
-	dropped_part.setup_dropped(part_color, body_part_type, "", body_part_id)
 	get_tree().current_scene.add_child(dropped_part)
 	dropped_part.global_position = global_position + LEG_DROP_OFFSET
+	dropped_part.setup_dropped(part_color, body_part_type, "", body_part_id)

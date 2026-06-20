@@ -1,6 +1,6 @@
 # Bonebound Prototype Progress
 
-Date: June 17, 2026
+Date: June 20, 2026
 
 ## Project Overview
 
@@ -17,25 +17,27 @@ The player begins as a weak skeleton made from separate body parts:
 
 The core idea is that the player can sacrifice, throw, lose, recover, and replace body parts. Body parts are both the character's body and part of the build system.
 
-For now, the project uses only simple placeholder visuals made from colored rectangles. No sprites or final art assets are used yet.
+The character, enemies, weapons, and body parts still use simple placeholder shapes, but the level-building prototype now uses a temporary 16x16 graveyard tileset. This lets rooms be blocked out with readable platform art while combat systems remain easy to inspect and change.
 
 ## Current Prototype Scene
 
-The main test scene is:
+The main runtime prototype scene is:
 
-- `res://scenes/TestPlayground.tscn`
+- `res://scenes/GraveyardLevel.tscn`
 
-It currently includes:
+The older playground scene still exists for isolated testing, but current room and level work is focused on the graveyard scene.
 
-- A player character
-- A floor and simple level geometry
-- A roll tunnel for testing crouched/rolling movement
-- A patrol enemy
-- Sword pickup
-- Shield pickup
-- Axe pickup
-- Corpse interaction after enemy death
-- Camera follow behavior
+The graveyard level currently includes:
+
+- Runtime assembly from authored room scenes
+- A scaled 16px player prototype
+- Scaled enemies
+- Ladders
+- Doors
+- Spike hazards
+- Parallax background layers
+- Sword, shield, and axe pickups in the starting room
+- Camera follow behavior tuned for the scaled player
 
 ## Player Body System
 
@@ -75,12 +77,30 @@ Current movement includes:
 - Facing direction
 - Roll with `Shift`
 - Basic crawler mode when both legs are missing
+- Ladder climbing
 
 The camera uses a Dead Cells-inspired dead-zone behavior:
 
 - The camera does not constantly follow every small movement.
 - The player can move inside a camera area.
 - When the player leaves that area, the camera gradually follows.
+- The scaled graveyard player uses a closer camera zoom so 16x16 rooms remain readable.
+
+## Ladder System
+
+Ladders are now part of the 16px room-building toolkit.
+
+Current ladder behavior:
+
+- Ladders use the temporary graveyard ladder graphic.
+- Ladders can be stacked vertically to reach different platform heights.
+- When the player is inside ladder range, holding `Space` climbs upward.
+- Releasing `Space` while on a ladder makes the player slowly slide downward.
+- Holding `S` climbs downward faster.
+- The player can move left or right away from the ladder.
+- The player can roll off a ladder with `A/D + Shift`.
+
+This gives rooms vertical routing without needing final art or a complex movement system.
 
 ## Leg Mechanics
 
@@ -243,6 +263,88 @@ Future door improvements:
 
 - Different door types can be added later, such as locked doors, heavy doors, shortcut doors, boss doors, or timed doors.
 
+## Level Building: Graveyard Rooms
+
+The project now has a first pass at an authored-room workflow for procedural level assembly.
+
+Current room library:
+
+- Start room
+- Exit room
+- Five combat rooms
+- Two loot rooms
+
+Current generation sequence:
+
+- Start room
+- Combat room
+- Combat room
+- Loot room
+- Combat room
+- Exit room
+
+The start and exit rooms are fixed. Combat and loot rooms are chosen randomly from their room pools each time `GraveyardLevel.tscn` runs.
+
+Current room assembly rules:
+
+- Rooms are authored manually in separate scenes.
+- The generator places room instances next to each other at runtime.
+- Rooms are kept on the same vertical baseline so the level reads as one continuous route.
+- Room contents keep their authored local positions when the room is moved.
+- Duplicate player and camera nodes are removed from generated room instances so the level uses one main player and one main camera.
+
+This is the first step toward a Dead Cells-inspired room-chain generator while still keeping room design hand-authored and controllable.
+
+## Temporary 16px Scale Pass
+
+The project now has scaled versions of key gameplay objects for the temporary 16x16 graveyard tileset.
+
+Current scaled objects include:
+
+- Player
+- Thrown body parts
+- Patrol enemy
+- Door
+- Ladder
+- Sword pickup
+- Shield pickup
+- Axe pickup
+
+The goal of this scale pass is to let the game be built around tile-sized rooms without breaking the older playground prototype.
+
+Scaled weapon pickup behavior:
+
+- The start room now includes sword, shield, and axe pickups.
+- Sword and shield are usable immediately if the player has the required arm.
+- Axe still requires the enemy arm because it is a heavy weapon.
+- Swapping between scaled sword and axe pickups keeps dropped weapons scaled, instead of spawning the older large pickup scenes.
+
+## Hazards
+
+Spike tiles were added as the first tile-based hazard prototype.
+
+Current spike behavior:
+
+- Spike tiles use a separate physics layer from solid ground.
+- The player can pass through spike tiles instead of treating them as walls.
+- Touching spike tiles damages the player.
+- Spike damage has a short cooldown so touching spikes does not drain all health instantly.
+
+This allows ground, wall, and ceiling spike layouts to be built directly with the room tileset.
+
+## Parallax Background
+
+The graveyard level now has a temporary parallax background assembled from the imported graphics pack.
+
+Current behavior:
+
+- Multiple background layers are spawned behind the level.
+- Layers move at different speeds relative to the camera.
+- The moon is not repeated, avoiding the earlier duplicate-moon look.
+- Background layers are scaled larger to better cover the camera view.
+
+This is still temporary presentation work, but it makes the graveyard rooms easier to read and test.
+
 ## Enemy System
 
 The current enemy is a simple patrol enemy.
@@ -359,9 +461,11 @@ Current effects:
 
 - `A`: move left
 - `D`: move right
-- `Space`: jump
+- `Space`: jump / climb up while on a ladder
 - `Space` in air with enemy legs: double jump
+- Release `Space` on ladder: slowly slide down
 - `Shift`: roll
+- `A/D + Shift` on ladder: roll off ladder
 - `J`: attack with equipped main-hand weapon
 - `K`: use shield
 - `1`: throw left arm
@@ -370,7 +474,7 @@ Current effects:
 - `5`: detach head
 - `E`: interact / swap weapon / open corpse UI
 - `W`: select enemy arm from corpse UI
-- `S`: select enemy legs from corpse UI
+- `S`: select enemy legs from corpse UI / climb down faster while on ladder
 
 ## Current Technical Direction
 
@@ -393,6 +497,10 @@ Important foundations already started:
 - Weapon weight categories
 - Body-part-based equipment restrictions
 - Corpse-based body part selection
+- Authored room pools for procedural assembly
+- 16px scaled object variants for tile-based level building
+- Tile-based hazard layer support
+- Basic parallax scene presentation
 
 ## Good Next Steps
 
