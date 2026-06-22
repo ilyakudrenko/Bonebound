@@ -1,12 +1,18 @@
 extends Node2D
 
-@export var enemy_scene: PackedScene = preload("res://scenes/scaled_objects/DummyEnemy_16px.tscn")
+@export var enemy_scene: PackedScene = EnemySpawnDatabase.DEFAULT_ENEMY_SCENE
 @export var spawn_enemies_on_ready := true
+@export var use_weighted_enemy_spawns := true
+@export var chest_scene: PackedScene = ChestSpawnDatabase.DEFAULT_CHEST_SCENE
+@export var spawn_chests_on_ready := true
+@export var use_weighted_chest_spawns := true
 
 
 func _ready() -> void:
 	if spawn_enemies_on_ready:
 		spawn_enemies()
+	if spawn_chests_on_ready:
+		spawn_chests()
 
 
 func spawn_enemies() -> void:
@@ -22,12 +28,102 @@ func spawn_enemies() -> void:
 
 
 func spawn_enemy_at(spawn_position: Vector2, enemies_parent: Node) -> void:
-	if enemy_scene == null:
+	var selected_enemy_scene: PackedScene = get_random_enemy_scene()
+	if selected_enemy_scene == null:
 		return
 
-	var enemy := enemy_scene.instantiate()
+	var enemy := selected_enemy_scene.instantiate()
 	enemies_parent.add_child(enemy)
 	enemy.global_position = spawn_position
+
+
+func spawn_chests() -> void:
+	var spawn_points := get_node_or_null("Markers/ChestSpawnPoints")
+	if spawn_points == null:
+		return
+
+	var chests_parent := get_or_create_chests_parent()
+
+	for child in spawn_points.get_children():
+		if child is Marker2D:
+			spawn_chest_at(child.global_position, chests_parent)
+
+
+func spawn_chest_at(spawn_position: Vector2, chests_parent: Node) -> void:
+	var selected_chest_data: Dictionary = get_random_chest_data()
+	var selected_chest_scene: PackedScene = selected_chest_data["scene"] as PackedScene
+	if selected_chest_scene == null:
+		return
+
+	var chest := selected_chest_scene.instantiate()
+	if has_property(chest, "chest_rarity"):
+		chest.set("chest_rarity", String(selected_chest_data["rarity"]))
+
+	chests_parent.add_child(chest)
+	chest.global_position = spawn_position
+
+
+func get_random_enemy_scene() -> PackedScene:
+	if not use_weighted_enemy_spawns:
+		return enemy_scene
+
+	var total_weight := 0
+	for raw_enemy_data in EnemySpawnDatabase.ENEMY_SPAWN_TABLE:
+		var enemy_data: Dictionary = raw_enemy_data as Dictionary
+		total_weight += int(enemy_data["weight"])
+
+	if total_weight <= 0:
+		return enemy_scene
+
+	var roll := randi_range(1, total_weight)
+	var current_weight := 0
+
+	for raw_enemy_data in EnemySpawnDatabase.ENEMY_SPAWN_TABLE:
+		var enemy_data: Dictionary = raw_enemy_data as Dictionary
+		current_weight += int(enemy_data["weight"])
+		if roll <= current_weight:
+			return enemy_data["scene"] as PackedScene
+
+	return enemy_scene
+
+
+func get_random_chest_data() -> Dictionary:
+	if not use_weighted_chest_spawns:
+		return {
+			"label": "Common Chest",
+			"weight": 1,
+			"rarity": ItemDatabase.RARITY_COMMON,
+			"scene": chest_scene,
+		}
+
+	var total_weight := 0
+	for raw_chest_data in ChestSpawnDatabase.CHEST_SPAWN_TABLE:
+		var chest_data: Dictionary = raw_chest_data as Dictionary
+		total_weight += int(chest_data["weight"])
+
+	if total_weight <= 0:
+		return {
+			"label": "Common Chest",
+			"weight": 1,
+			"rarity": ItemDatabase.RARITY_COMMON,
+			"scene": chest_scene,
+		}
+
+	var roll := randi_range(1, total_weight)
+	var current_weight := 0
+
+	for raw_chest_data in ChestSpawnDatabase.CHEST_SPAWN_TABLE:
+		var chest_data: Dictionary = raw_chest_data as Dictionary
+		current_weight += int(chest_data["weight"])
+		if roll <= current_weight:
+			return chest_data
+
+	return {
+		"label": "Common Chest",
+		"weight": 1,
+		"rarity": ItemDatabase.RARITY_COMMON,
+		"scene": chest_scene,
+	}
 
 
 func get_or_create_enemies_parent() -> Node:
@@ -39,3 +135,22 @@ func get_or_create_enemies_parent() -> Node:
 	enemies_parent.name = "Enemies"
 	add_child(enemies_parent)
 	return enemies_parent
+
+
+func get_or_create_chests_parent() -> Node:
+	var chests_parent := get_node_or_null("Chests")
+	if chests_parent != null:
+		return chests_parent
+
+	chests_parent = Node.new()
+	chests_parent.name = "Chests"
+	add_child(chests_parent)
+	return chests_parent
+
+
+func has_property(node: Node, property_name: String) -> bool:
+	for property in node.get_property_list():
+		if str(property.get("name", "")) == property_name:
+			return true
+
+	return false

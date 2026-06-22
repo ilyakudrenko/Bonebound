@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/bone_lobber_16px.gd" id="1_lobber_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bone_lobber"]
+size = Vector2(16, 44)
+
+[node name="BoneLobber16px" type="Area2D"]
+collision_mask = 1
+script = ExtResource("1_lobber_script")
+
+[node name="Body" type="ColorRect" parent="."]
+offset_left = -8.0
+offset_top = -34.0
+offset_right = 8.0
+offset_bottom = 0.0
+color = Color(0.48, 0.22, 0.34, 1)
+
+[node name="Head" type="ColorRect" parent="."]
+offset_left = -6.0
+offset_top = -48.0
+offset_right = 6.0
+offset_bottom = -36.0
+color = Color(0.68, 0.58, 0.62, 1)
+
+[node name="ThrowArm" type="ColorRect" parent="."]
+offset_left = 6.0
+offset_top = -32.0
+offset_right = 12.0
+offset_bottom = -14.0
+color = Color(0.18, 0.52, 0.68, 1)
+
+[node name="BombSack" type="ColorRect" parent="."]
+offset_left = -12.0
+offset_top = -22.0
+offset_right = -5.0
+offset_bottom = -8.0
+color = Color(0.95, 0.32, 0.25, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -22)
+shape = SubResource("RectangleShape2D_bone_lobber")

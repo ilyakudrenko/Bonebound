@@ -2,7 +2,7 @@ extends StaticBody2D
 
 const OPEN_VISUAL_OFFSET := 28.0
 const ROLL_SMASH_DISTANCE := Vector2(28, 60)
-const THROWN_BODY_PART_SCENE := preload("res://scenes/scaled_objects/ThrownBodyPart_16px.tscn")
+const THROWN_BODY_PART_SCENE := preload("res://scenes/scaled/body_parts/ThrownBodyPart_16px.tscn")
 
 var is_open := false
 var is_smashed := false

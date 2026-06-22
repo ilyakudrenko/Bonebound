@@ -5,8 +5,8 @@
 [ext_resource type="Texture2D" uid="uid://b0pnjm74bc73h" path="res://assets/Graveyard [16x16]/Tiles/Back_Tiles.png" id="3_4btn2"]
 [ext_resource type="Texture2D" uid="uid://dh2lk31aownvt" path="res://assets/Graveyard [16x16]/Props&Objects/Ladder.png" id="4_qoml8"]
 [ext_resource type="Texture2D" uid="uid://kidkjleyluvk" path="res://assets/Graveyard [16x16]/Props&Objects/Spikes.png" id="5_nftvm"]
-[ext_resource type="PackedScene" path="res://scenes/scaled_objects/Door_16px.tscn" id="8_dfq47"]
-[ext_resource type="PackedScene" path="res://scenes/scaled_objects/Ladder_16px.tscn" id="9_q0ek1"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/world/Door_16px.tscn" id="8_dfq47"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/world/Ladder_16px.tscn" id="9_q0ek1"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6eqyr"]
 texture = ExtResource("2_og70l")

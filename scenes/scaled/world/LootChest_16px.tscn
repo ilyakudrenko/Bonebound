@@ -1,0 +1,75 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/loot_chest_16px.gd" id="1_loot_chest_script"]
+[ext_resource type="Texture2D" path="res://assets/Chests/RPG Chests.png" id="2_chest_sheet"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_loot_chest"]
+size = Vector2(48, 38)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_chest_closed"]
+atlas = ExtResource("2_chest_sheet")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_chest_open"]
+atlas = ExtResource("2_chest_sheet")
+region = Rect2(32, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rare_chest_closed"]
+atlas = ExtResource("2_chest_sheet")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rare_chest_open"]
+atlas = ExtResource("2_chest_sheet")
+region = Rect2(128, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_legendary_chest_closed"]
+atlas = ExtResource("2_chest_sheet")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_legendary_chest_open"]
+atlas = ExtResource("2_chest_sheet")
+region = Rect2(160, 64, 32, 32)
+
+[node name="LootChest16px" type="Area2D"]
+script = ExtResource("1_loot_chest_script")
+closed_texture = SubResource("AtlasTexture_chest_closed")
+open_texture = SubResource("AtlasTexture_chest_open")
+rare_closed_texture = SubResource("AtlasTexture_rare_chest_closed")
+rare_open_texture = SubResource("AtlasTexture_rare_chest_open")
+legendary_closed_texture = SubResource("AtlasTexture_legendary_chest_closed")
+legendary_open_texture = SubResource("AtlasTexture_legendary_chest_open")
+
+[node name="Visual" type="Sprite2D" parent="."]
+position = Vector2(0, -19)
+scale = Vector2(1.5, 1.5)
+texture_filter = 1
+texture = SubResource("AtlasTexture_chest_closed")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -19)
+shape = SubResource("RectangleShape2D_loot_chest")
+
+[node name="Prompt" type="Node2D" parent="."]
+visible = false
+position = Vector2(0, -58)
+z_index = 20
+
+[node name="PromptBack" type="ColorRect" parent="Prompt"]
+offset_left = -28.0
+offset_top = -8.0
+offset_right = 28.0
+offset_bottom = 8.0
+color = Color(0.02, 0.02, 0.025, 0.92)
+
+[node name="PromptLabel" type="Label" parent="Prompt"]
+offset_left = -28.0
+offset_top = -8.0
+offset_right = 28.0
+offset_bottom = 8.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 10
+text = "Press E"
+horizontal_alignment = 1
+vertical_alignment = 1

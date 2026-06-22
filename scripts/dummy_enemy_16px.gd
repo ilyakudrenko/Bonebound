@@ -40,8 +40,8 @@ const COOLDOWN_STATE := "cooldown"
 const STUNNED_STATE := "stunned"
 const ENEMY_GROUP := "enemies"
 
-const FLOATING_DAMAGE_NUMBER_SCENE := preload("res://scenes/FloatingDamageNumber.tscn")
-const ENEMY_CORPSE_SCENE := preload("res://scenes/EnemyCorpse.tscn")
+const FLOATING_DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/FloatingDamageNumber.tscn")
+const ENEMY_CORPSE_SCENE := preload("res://scenes/ui/EnemyCorpse.tscn")
 
 @export var patrol_distance: float = DEFAULT_PATROL_DISTANCE
 @export var use_patrol_limits := false
@@ -110,17 +110,22 @@ func _physics_process(delta: float) -> void:
 			state = IDLE_STATE
 
 
-func take_damage(amount: int) -> void:
+func take_damage(amount: int, is_critical: bool = false) -> void:
 	health -= amount
 	flash_hit()
-	spawn_damage_number(amount)
+	spawn_damage_number(amount, is_critical)
 
 	if health <= 0:
+		notify_player_enemy_killed()
 		spawn_corpse()
 		queue_free()
 		return
 
 	react_to_damage()
+
+
+func take_parry_counter_damage(amount: int) -> void:
+	take_damage(amount)
 
 
 func react_to_damage() -> void:
@@ -137,10 +142,10 @@ func flash_hit() -> void:
 	tween.tween_property(visual, "color", NORMAL_COLOR, 0.15)
 
 
-func spawn_damage_number(amount: int) -> void:
+func spawn_damage_number(amount: int, is_critical: bool = false) -> void:
 	var damage_number := FLOATING_DAMAGE_NUMBER_SCENE.instantiate()
 
-	damage_number.setup(amount)
+	damage_number.setup(amount, is_critical)
 	get_tree().current_scene.add_child(damage_number)
 	damage_number.global_position = global_position + DAMAGE_NUMBER_OFFSET
 
@@ -148,8 +153,24 @@ func spawn_damage_number(amount: int) -> void:
 func spawn_corpse() -> void:
 	var corpse := ENEMY_CORPSE_SCENE.instantiate()
 
+	if corpse.has_method("setup_rewards"):
+		corpse.call("setup_rewards", get_arm_reward_pool(), get_leg_reward_pool())
+
 	corpse.global_position = global_position
 	get_tree().current_scene.call_deferred("add_child", corpse)
+
+
+func notify_player_enemy_killed() -> void:
+	if player != null and is_instance_valid(player) and player.has_method("notify_enemy_killed"):
+		player.call("notify_enemy_killed")
+
+
+func get_arm_reward_pool() -> Array:
+	return BodyPartDatabase.BASIC_ENEMY_ARM_REWARDS
+
+
+func get_leg_reward_pool() -> Array:
+	return BodyPartDatabase.BASIC_ENEMY_LEG_REWARDS
 
 
 func start_windup() -> void:
@@ -195,6 +216,10 @@ func stun_for_duration(duration: float) -> void:
 	visual.color = STUN_COLOR
 
 
+func is_crowd_controlled() -> bool:
+	return state == STUNNED_STATE
+
+
 func is_player_in_detection_range() -> bool:
 	var horizontal_distance := absf(player.global_position.x - global_position.x)
 	var vertical_distance := absf(player.global_position.y - global_position.y)
@@ -217,6 +242,10 @@ func try_hit_player() -> void:
 	has_hit_during_attack = true
 
 	if player.has_method("is_shield_parrying") and player.call("is_shield_parrying"):
+		if player.has_method("handle_successful_melee_parry"):
+			player.call("handle_successful_melee_parry", self)
+		if is_queued_for_deletion():
+			return
 		stun()
 		return
 
@@ -232,6 +261,10 @@ func check_prepare_parry() -> void:
 		return
 
 	if player.has_method("is_shield_parrying") and player.call("is_shield_parrying"):
+		if player.has_method("handle_successful_melee_parry"):
+			player.call("handle_successful_melee_parry", self)
+		if is_queued_for_deletion():
+			return
 		was_parried_during_prepare = true
 		visual.color = STUN_COLOR
 

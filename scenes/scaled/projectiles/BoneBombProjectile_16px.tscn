@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/bone_bomb_projectile_16px.gd" id="1_projectile_script"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bone_bomb"]
+radius = 4.0
+
+[node name="BoneBombProjectile16px" type="Area2D"]
+collision_mask = 1
+script = ExtResource("1_projectile_script")
+
+[node name="BombVisual" type="ColorRect" parent="."]
+offset_left = -4.0
+offset_top = -4.0
+offset_right = 4.0
+offset_bottom = 4.0
+color = Color(0.86, 0.82, 0.68, 1)
+
+[node name="WarningVisual" type="ColorRect" parent="."]
+offset_left = -12.0
+offset_top = -2.0
+offset_right = 12.0
+offset_bottom = 2.0
+color = Color(1, 0.18, 0.04, 0.65)
+
+[node name="ExplosionVisual" type="ColorRect" parent="."]
+offset_left = -7.0
+offset_top = -7.0
+offset_right = 7.0
+offset_bottom = 7.0
+color = Color(1, 0.45, 0.08, 0.85)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_bone_bomb")

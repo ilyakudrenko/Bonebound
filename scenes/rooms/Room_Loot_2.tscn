@@ -4,8 +4,8 @@
 [ext_resource type="Texture2D" uid="uid://bbcpfffao28ja" path="res://assets/Graveyard [16x16]/Tiles/Ground_Tiles.png" id="2_1qq1t"]
 [ext_resource type="Texture2D" uid="uid://b0pnjm74bc73h" path="res://assets/Graveyard [16x16]/Tiles/Back_Tiles.png" id="3_ynpsy"]
 [ext_resource type="Texture2D" uid="uid://dh2lk31aownvt" path="res://assets/Graveyard [16x16]/Props&Objects/Ladder.png" id="4_1dhra"]
-[ext_resource type="PackedScene" path="res://scenes/scaled_objects/AxePickup_16px.tscn" id="6_ynw57"]
-[ext_resource type="PackedScene" path="res://scenes/scaled_objects/Door_16px.tscn" id="7_1qq1t"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/world/LootChest_16px.tscn" id="6_ynw57"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/world/Door_16px.tscn" id="7_1qq1t"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6eqyr"]
 texture = ExtResource("2_1qq1t")
@@ -221,6 +221,11 @@ layer_0/tile_data = PackedInt32Array(1310734, 65536, 0, 1310735, 65536, 0, 13107
 
 [node name="Markers" type="Node2D" parent="." unique_id=46496844]
 
+[node name="ChestSpawnPoints" type="Node2D" parent="Markers"]
+
+[node name="ChestSpawn_Main" type="Marker2D" parent="Markers/ChestSpawnPoints"]
+position = Vector2(336, 328)
+
 [node name="Doors" type="Node2D" parent="." unique_id=1798436882]
 
 [node name="Door_Test" parent="Doors" unique_id=2120852432 instance=ExtResource("7_1qq1t")]
@@ -228,6 +233,3 @@ position = Vector2(186, 320)
 
 [node name="Door_Test2" parent="Doors" unique_id=622394331 instance=ExtResource("7_1qq1t")]
 position = Vector2(486, 320)
-
-[node name="AxePickup16px" parent="." unique_id=796995234 instance=ExtResource("6_ynw57")]
-position = Vector2(329, 306)

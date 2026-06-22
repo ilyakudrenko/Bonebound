@@ -1,0 +1,34 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/stomp_legs_pickup_16px.gd" id="1_stomp_legs_pickup_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_stomp_legs_pickup"]
+size = Vector2(18, 18)
+
+[node name="StompLegsPickup16px" type="Area2D"]
+script = ExtResource("1_stomp_legs_pickup_script")
+
+[node name="LeftLeg" type="ColorRect" parent="."]
+offset_left = -8.0
+offset_top = -18.0
+offset_right = -2.0
+offset_bottom = 0.0
+color = Color(0.65, 0.35, 1, 1)
+
+[node name="RightLeg" type="ColorRect" parent="."]
+offset_left = 2.0
+offset_top = -18.0
+offset_right = 8.0
+offset_bottom = 0.0
+color = Color(0.65, 0.35, 1, 1)
+
+[node name="Boots" type="ColorRect" parent="."]
+offset_left = -10.0
+offset_top = -3.0
+offset_right = 10.0
+offset_bottom = 2.0
+color = Color(0.35, 0.18, 0.65, 1)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -8)
+shape = SubResource("RectangleShape2D_stomp_legs_pickup")

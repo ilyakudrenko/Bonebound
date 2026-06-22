@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://bbcpfffao28ja" path="res://assets/Graveyard [16x16]/Tiles/Ground_Tiles.png" id="2_ivi2h"]
 [ext_resource type="Texture2D" uid="uid://b0pnjm74bc73h" path="res://assets/Graveyard [16x16]/Tiles/Back_Tiles.png" id="3_ecodw"]
 [ext_resource type="Texture2D" uid="uid://dh2lk31aownvt" path="res://assets/Graveyard [16x16]/Props&Objects/Ladder.png" id="4_d8wdm"]
-[ext_resource type="PackedScene" path="res://scenes/scaled_objects/AxePickup_16px.tscn" id="5_ynd26"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/world/LootChest_16px.tscn" id="5_ynd26"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6eqyr"]
 texture = ExtResource("2_ivi2h")
@@ -220,5 +220,7 @@ layer_0/tile_data = PackedInt32Array(1310734, 65536, 0, 1310735, 65536, 0, 13107
 
 [node name="Markers" type="Node2D" parent="." unique_id=46496844]
 
-[node name="AxePickup16px" parent="." unique_id=250743975 instance=ExtResource("5_ynd26")]
-position = Vector2(335, 307)
+[node name="ChestSpawnPoints" type="Node2D" parent="Markers"]
+
+[node name="ChestSpawn_Main" type="Marker2D" parent="Markers/ChestSpawnPoints"]
+position = Vector2(344, 328)

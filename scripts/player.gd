@@ -60,8 +60,8 @@ const ENEMY_ARM_COLOR := Color(1, 0.35, 0.75, 1)
 const ENEMY_LEG_COLOR := Color(0.45, 0.85, 1, 1)
 const ENEMY_LEG_DOUBLE_JUMPS := 1
 
-const THROWN_BODY_PART_SCENE := preload("res://scenes/ThrownBodyPart.tscn")
-const FLOATING_FEEDBACK_MESSAGE_SCENE := preload("res://scenes/FloatingFeedbackMessage.tscn")
+const THROWN_BODY_PART_SCENE := preload("res://scenes/legacy/body_parts/ThrownBodyPart.tscn")
+const FLOATING_FEEDBACK_MESSAGE_SCENE := preload("res://scenes/ui/FloatingFeedbackMessage.tscn")
 
 var facing_direction := 1
 var is_rolling := false
@@ -656,12 +656,12 @@ func is_shield_parrying() -> bool:
 	return is_shield_blocking() and shield_parry_time_left > 0.0
 
 
-func take_player_damage(amount: int, attacker: Node = null) -> void:
+func take_player_damage(amount: int, attacker: Variant = null) -> void:
 	if is_dead:
 		return
 
 	if is_shield_parrying():
-		if attacker != null and attacker.has_method("take_damage"):
+		if is_instance_valid(attacker) and attacker.has_method("take_damage"):
 			attacker.call("take_damage", 1)
 		return
 

@@ -1,6 +1,6 @@
 extends Area2D
 
-const SWORD_PICKUP_SCENE_PATH := "res://scenes/SwordPickup.tscn"
+const SWORD_PICKUP_SCENE_PATH := "res://scenes/legacy/pickups/SwordPickup.tscn"
 
 var nearby_player: Node = null
 var was_interact_pressed := false

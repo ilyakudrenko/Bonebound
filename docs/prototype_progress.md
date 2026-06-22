@@ -23,7 +23,7 @@ The character, enemies, weapons, and body parts still use simple placeholder sha
 
 The main runtime prototype scene is:
 
-- `res://scenes/GraveyardLevel.tscn`
+- `res://scenes/levels/GraveyardLevel.tscn`
 
 The older playground scene still exists for isolated testing, but current room and level work is focused on the graveyard scene.
 
@@ -38,6 +38,25 @@ The graveyard level currently includes:
 - Parallax background layers
 - Sword, shield, and axe pickups in the starting room
 - Camera follow behavior tuned for the scaled player
+
+## Progress Update: June 22, 2026
+
+Major prototype updates since the previous save:
+
+- Project scenes and scripts were reorganized into clearer folders for legacy scenes, scaled gameplay objects, rooms, levels, testing scenes, UI, pickups, world objects, and data.
+- The active 16px prototype now uses scaled weapons, shields, body parts, enemies, doors, ladders, projectiles, and chests.
+- Item data was centralized in `ItemDatabase`, including weapon stats, shield stats, icon regions, pickup scenes, rarity modifiers, and chest loot discovery.
+- Body-part reward data was centralized in `BodyPartDatabase`, including body-part ids, reward ids, colors, labels, descriptions, and drop weights.
+- Challenge Chest data was moved into `ChallengeDatabase`, making challenge definitions easier to extend.
+- Regular loot chests now support common, rare, and legendary visual states using actual chest sprites instead of only color tinting.
+- Challenge Chests were added as separate hand-placed special chests. They are not part of regular rarity chest spawning and can reward a random legendary item after the player completes a challenge.
+- Current Challenge Chest prototypes include: kill two enemies without taking damage, kill one enemy using a thrown body part, and sacrifice the left arm.
+- New weapons and shields were added to the prototype item system, including Grave Rapier, Bone Cleaver, Soul Harvester, Bone Mirror, and Spiked Shield.
+- Weapon and shield rarity behavior has been expanded for common, rare, and legendary item states.
+- Soul Harvester now shows visual Soul Stack pips in the HUD.
+- Body-part abilities now include Boomerang Arms, Harpoon Arms, Stomp Legs, and Spider Legs.
+- Enemy variety now includes the basic patrol enemy, shield enemy, and bomb-throwing ranged enemy.
+- The testing room `res://scenes/testing/Room_Testing_16px.tscn` remains useful for isolated mechanics testing.
 
 ## Player Body System
 

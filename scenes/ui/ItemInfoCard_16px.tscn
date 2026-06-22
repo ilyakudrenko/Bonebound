@@ -1,0 +1,116 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/item_info_card_16px.gd" id="1_item_info_card_script"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_item_info_card"]
+bg_color = Color(0.035, 0.03, 0.045, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.74, 0.95, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_press_badge"]
+bg_color = Color(0.02, 0.02, 0.025, 0.94)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.85, 0.85, 1, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+content_margin_left = 4.0
+content_margin_top = 2.0
+content_margin_right = 4.0
+content_margin_bottom = 2.0
+
+[node name="ItemInfoCard16px" type="Control"]
+visible = false
+offset_left = -118.0
+offset_top = -146.0
+offset_right = 118.0
+offset_bottom = -42.0
+z_index = 40
+script = ExtResource("1_item_info_card_script")
+
+[node name="Card" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 236.0
+offset_bottom = 104.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_item_info_card")
+
+[node name="VBox" type="VBoxContainer" parent="Card"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="Row" type="HBoxContainer" parent="Card/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="Card/VBox/Row"]
+custom_minimum_size = Vector2(46, 46)
+layout_mode = 2
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ItemLabel" type="Label" parent="Card/VBox/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 13
+text = "Item"
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Description" type="Label" parent="Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.88, 0.94, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 10
+text = "Description"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="RarityLabel" type="Label" parent="Card/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.88, 0.92, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 10
+text = "Common"
+horizontal_alignment = 1
+
+[node name="PressBadge" type="PanelContainer" parent="."]
+layout_mode = 0
+offset_left = 142.0
+offset_top = 7.0
+offset_right = 229.0
+offset_bottom = 24.0
+z_index = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_press_badge")
+
+[node name="Label" type="Label" parent="PressBadge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 9
+text = "Press E"
+horizontal_alignment = 1
+vertical_alignment = 1

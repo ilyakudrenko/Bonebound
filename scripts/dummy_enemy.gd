@@ -38,8 +38,8 @@ const COOLDOWN_STATE := "cooldown"
 const STUNNED_STATE := "stunned"
 const ENEMY_GROUP := "enemies"
 
-const FLOATING_DAMAGE_NUMBER_SCENE := preload("res://scenes/FloatingDamageNumber.tscn")
-const ENEMY_CORPSE_SCENE := preload("res://scenes/EnemyCorpse.tscn")
+const FLOATING_DAMAGE_NUMBER_SCENE := preload("res://scenes/ui/FloatingDamageNumber.tscn")
+const ENEMY_CORPSE_SCENE := preload("res://scenes/ui/EnemyCorpse.tscn")
 
 @export var patrol_distance: float = DEFAULT_PATROL_DISTANCE
 @export var use_patrol_limits := false

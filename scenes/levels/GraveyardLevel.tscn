@@ -1,0 +1,24 @@
+[gd_scene format=3 uid="uid://c4cbh8ayq1xhs"]
+
+[ext_resource type="Script" uid="uid://dhjoe41t2kl4q" path="res://scripts/graveyard_level.gd" id="1_graveyard_level"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/player/Player_16px.tscn" id="2_player_16px"]
+[ext_resource type="Script" uid="uid://mb65cbbb1w2t" path="res://scripts/dead_zone_camera.gd" id="3_dead_zone_camera"]
+[ext_resource type="Script" uid="uid://c2g7kevpwfvp3" path="res://scripts/graveyard_parallax_background.gd" id="4_parallax_background"]
+
+[node name="GraveyardLevel" type="Node2D" unique_id=183830490]
+script = ExtResource("1_graveyard_level")
+
+[node name="ParallaxBackground" type="Node2D" parent="." unique_id=1597023190]
+z_index = -1000
+script = ExtResource("4_parallax_background")
+
+[node name="Rooms" type="Node2D" parent="." unique_id=637935174]
+
+[node name="Player" parent="." unique_id=356319485 instance=ExtResource("2_player_16px")]
+
+[node name="GameplayCamera" type="Camera2D" parent="." unique_id=1065487927]
+zoom = Vector2(2, 2)
+script = ExtResource("3_dead_zone_camera")
+target_path = NodePath("../Player")
+target_offset = Vector2(0, -24)
+dead_zone_size = Vector2(128, 72)

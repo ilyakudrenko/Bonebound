@@ -3,7 +3,7 @@
 [ext_resource type="Texture2D" uid="uid://bbcpfffao28ja" path="res://assets/Graveyard [16x16]/Tiles/Ground_Tiles.png" id="1_lyiqt"]
 [ext_resource type="Texture2D" uid="uid://b0pnjm74bc73h" path="res://assets/Graveyard [16x16]/Tiles/Back_Tiles.png" id="2_6vjej"]
 [ext_resource type="Texture2D" uid="uid://dh2lk31aownvt" path="res://assets/Graveyard [16x16]/Props&Objects/Ladder.png" id="3_h26lb"]
-[ext_resource type="PackedScene" path="res://scenes/scaled_objects/Ladder_16px.tscn" id="4_ladder_16px"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/world/Ladder_16px.tscn" id="4_ladder_16px"]
 [ext_resource type="Script" uid="uid://d0h6s4fa686wy" path="res://scripts/room_enemy_spawner_16px.gd" id="6_room_spawner_16px"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6eqyr"]
