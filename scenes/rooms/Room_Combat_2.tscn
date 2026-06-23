@@ -269,6 +269,11 @@ position = Vector2(487, 186)
 [node name="EnemySpawn_UpperPlatBform2" type="Marker2D" parent="Markers/EnemySpawnPoints" unique_id=1118841647]
 position = Vector2(369, 66)
 
+[node name="ConsumableSpawnPoints" type="Node2D" parent="Markers" unique_id=1976133695]
+
+[node name="ConsumableSpawn_Test" type="Marker2D" parent="Markers/ConsumableSpawnPoints" unique_id=1158541400]
+position = Vector2(-454, 85)
+
 [node name="Doors" type="Node2D" parent="." unique_id=1192006771]
 
 [node name="Door_Test" parent="Doors" unique_id=1606793916 instance=ExtResource("8_door16")]

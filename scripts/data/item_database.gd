@@ -11,6 +11,11 @@ const SHIELD_BASIC := "shield"
 const SHIELD_BONE_MIRROR := "bone_mirror"
 const SHIELD_SPIKED := "spiked_shield"
 
+const CONSUMABLE_BONE_FLASK := "bone_flask"
+const CONSUMABLE_BONE_REPAIR_KIT := "bone_repair_kit"
+const CONSUMABLE_SOUL_VIAL := "soul_vial"
+const CONSUMABLE_SWIFT_BONE := "swift_bone"
+
 const WEIGHT_LIGHT := "light"
 const WEIGHT_MEDIUM := "medium"
 const WEIGHT_HEAVY := "heavy"
@@ -321,6 +326,42 @@ const SHIELDS := {
 	},
 }
 
+const CONSUMABLES := {
+	CONSUMABLE_BONE_FLASK: {
+		"label": "Bone Flask",
+		"description": "Restore 25 HP.",
+		"pickup_scene": "res://scenes/scaled/pickups/BoneFlaskPickup_16px.tscn",
+		"icon_texture": "res://assets/16x16 RPG Item Pack/items_sheet.png",
+		"icon_region": Rect2(80, 48, 16, 16),
+		"heal_amount": 25,
+	},
+	CONSUMABLE_BONE_REPAIR_KIT: {
+		"label": "Bone Repair Kit",
+		"description": "Restore all missing body parts.",
+		"pickup_scene": "res://scenes/scaled/pickups/BoneRepairKitPickup_16px.tscn",
+		"icon_texture": "res://assets/16x16 RPG Item Pack/items_sheet.png",
+		"icon_region": Rect2(112, 48, 16, 16),
+	},
+	CONSUMABLE_SOUL_VIAL: {
+		"label": "Soul Vial",
+		"description": "Gain 3 Soul Stacks.",
+		"pickup_scene": "res://scenes/scaled/pickups/SoulVialPickup_16px.tscn",
+		"icon_texture": "res://assets/16x16 RPG Item Pack/items_sheet.png",
+		"icon_region": Rect2(80, 64, 16, 16),
+		"soul_stacks": 3,
+	},
+	CONSUMABLE_SWIFT_BONE: {
+		"label": "Swift Bone",
+		"description": "+20% movement speed. +20% roll distance. Duration: 20s.",
+		"pickup_scene": "res://scenes/scaled/pickups/SwiftBonePickup_16px.tscn",
+		"icon_texture": "res://assets/16x16 RPG Item Pack/items_sheet.png",
+		"icon_region": Rect2(96, 64, 16, 16),
+		"speed_multiplier": 1.2,
+		"roll_multiplier": 1.2,
+		"duration": 20.0,
+	},
+}
+
 
 static func get_weapon_data(weapon_id: String) -> Dictionary:
 	return WEAPONS.get(weapon_id, {}) as Dictionary
@@ -359,6 +400,18 @@ static func get_shield_pickup_scene_path(shield_id: String) -> String:
 	return String(get_shield_value(shield_id, "pickup_scene", ""))
 
 
+static func get_consumable_data(consumable_id: String) -> Dictionary:
+	return CONSUMABLES.get(consumable_id, {}) as Dictionary
+
+
+static func get_consumable_value(consumable_id: String, key: String, fallback: Variant) -> Variant:
+	return get_consumable_data(consumable_id).get(key, fallback)
+
+
+static func get_consumable_pickup_scene_path(consumable_id: String) -> String:
+	return String(get_consumable_value(consumable_id, "pickup_scene", ""))
+
+
 static func is_weapon(item_id: String) -> bool:
 	return WEAPONS.has(item_id)
 
@@ -367,11 +420,17 @@ static func is_shield(item_id: String) -> bool:
 	return SHIELDS.has(item_id)
 
 
+static func is_consumable(item_id: String) -> bool:
+	return CONSUMABLES.has(item_id)
+
+
 static func get_item_data(item_id: String) -> Dictionary:
 	if is_weapon(item_id):
 		return get_weapon_data(item_id)
 	if is_shield(item_id):
 		return get_shield_data(item_id)
+	if is_consumable(item_id):
+		return get_consumable_data(item_id)
 	return {}
 
 
@@ -380,6 +439,8 @@ static func get_item_pickup_scene_path(item_id: String) -> String:
 		return get_weapon_pickup_scene_path(item_id)
 	if is_shield(item_id):
 		return get_shield_pickup_scene_path(item_id)
+	if is_consumable(item_id):
+		return get_consumable_pickup_scene_path(item_id)
 	return ""
 
 

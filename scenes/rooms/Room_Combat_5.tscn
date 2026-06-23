@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://b0pnjm74bc73h" path="res://assets/Graveyard [16x16]/Tiles/Back_Tiles.png" id="3_1otbn"]
 [ext_resource type="Texture2D" uid="uid://dh2lk31aownvt" path="res://assets/Graveyard [16x16]/Props&Objects/Ladder.png" id="4_milab"]
 [ext_resource type="Texture2D" uid="uid://kidkjleyluvk" path="res://assets/Graveyard [16x16]/Props&Objects/Spikes.png" id="5_8h3gq"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/pickups/markers/ChallengeChestSpawnPoint_16px.tscn" id="6_dytkx"]
 [ext_resource type="PackedScene" path="res://scenes/scaled/world/Door_16px.tscn" id="8_ko1lj"]
 [ext_resource type="PackedScene" path="res://scenes/scaled/world/Ladder_16px.tscn" id="9_x5krn"]
 
@@ -280,6 +281,16 @@ position = Vector2(554, 352)
 
 [node name="EnemySpawn_UpperPlatformA" type="Marker2D" parent="Markers/EnemySpawnPoints" unique_id=1309652463]
 position = Vector2(453, 178)
+
+[node name="ConsumableSpawnPoints" type="Node2D" parent="Markers" unique_id=2121673548]
+
+[node name="ConsumableSpawn_Test" type="Marker2D" parent="Markers/ConsumableSpawnPoints" unique_id=1654993442]
+position = Vector2(-33, 455)
+
+[node name="ChallengeChestSpawnPoints" type="Node2D" parent="Markers" unique_id=238056746]
+
+[node name="ChallengeChestSpawnPoint" parent="Markers/ChallengeChestSpawnPoints" unique_id=331256720 instance=ExtResource("6_dytkx")]
+position = Vector2(106, 471)
 
 [node name="Doors" type="Node2D" parent="." unique_id=1192006771]
 position = Vector2(545, 135)

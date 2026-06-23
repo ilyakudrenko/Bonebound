@@ -1,6 +1,7 @@
 extends Area2D
 
 const STATE_READY := "ready"
+const STATE_AWAITING_SACRIFICE := "awaiting_sacrifice"
 const STATE_ACTIVE := "active"
 const STATE_COMPLETE := "complete"
 const STATE_FAILED := "failed"
@@ -65,6 +66,10 @@ func handle_interaction() -> void:
 		open_chest()
 		return
 
+	if state == STATE_AWAITING_SACRIFICE:
+		try_complete_left_arm_sacrifice()
+		return
+
 	if state == STATE_ACTIVE:
 		update_challenge_panel()
 		challenge_panel.show()
@@ -81,7 +86,9 @@ func start_challenge() -> void:
 	progress = 0
 
 	if challenge_id == ChallengeDatabase.CHALLENGE_SACRIFICE_LEFT_ARM:
-		try_complete_left_arm_sacrifice()
+		state = STATE_AWAITING_SACRIFICE
+		update_challenge_panel()
+		challenge_panel.show()
 		return
 
 	state = STATE_ACTIVE
@@ -195,6 +202,8 @@ func update_challenge_panel(status_text: String = "") -> void:
 
 	if status_text != "":
 		progress_label.text = status_text
+	elif state == STATE_AWAITING_SACRIFICE:
+		progress_label.text = "Offering required: left arm."
 	elif state == STATE_ACTIVE:
 		progress_label.text = "Progress: " + str(progress) + "/" + str(required_progress)
 	elif state == STATE_FAILED:
@@ -206,6 +215,8 @@ func update_challenge_panel(status_text: String = "") -> void:
 
 	if state == STATE_READY or state == STATE_FAILED:
 		action_label.text = "Press E to start."
+	elif state == STATE_AWAITING_SACRIFICE:
+		action_label.text = "Press E again to sacrifice."
 	elif state == STATE_ACTIVE:
 		action_label.text = "Challenge active."
 	elif state == STATE_COMPLETE:

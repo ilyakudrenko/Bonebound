@@ -33,6 +33,10 @@ The room catalog is:
 
 - `res://scripts/room_catalog.gd`
 
+The room sequence catalog is:
+
+- `res://scripts/room_sequence_catalog.gd`
+
 ## Room Library
 
 Rooms are stored as separate authored scenes in:
@@ -44,6 +48,7 @@ Current room types:
 - Start room
 - Combat rooms
 - Loot rooms
+- Puzzle rooms
 - Exit room
 
 Current room scenes:
@@ -85,16 +90,19 @@ Examples:
 - `Room_Combat_2.tscn`
 - `Room_Loot_1.tscn`
 - `Room_Loot_3.tscn`
+- `Room_Puzzle_1.tscn`
 
 The room type is read from the second word:
 
 - `Room_Combat_3.tscn` becomes a combat room.
 - `Room_Loot_2.tscn` becomes a loot room.
+- `Room_Puzzle_1.tscn` becomes a puzzle room.
 
 The ID is read from the third word:
 
 - `Room_Combat_5.tscn` has ID `5`.
 - `Room_Loot_12.tscn` has ID `12`.
+- `Room_Puzzle_3.tscn` has ID `3`.
 
 Start and exit rooms also use the same naming idea:
 
@@ -119,7 +127,26 @@ Start and exit rooms are not randomized yet. They stay fixed.
 
 ## Current Sequence Templates
 
-The generator currently has two possible sequence templates.
+Sequence templates are stored as text files in:
+
+```text
+res://scenes/rooms/room_sequences/
+```
+
+Sequence filenames use this pattern:
+
+```text
+Level_<LevelName>_<ID>.txt
+```
+
+Examples:
+
+- `Level_Graveyard_1.txt`
+- `Level_Graveyard_2.txt`
+
+When `GraveyardLevel.tscn` loads, it randomly chooses one valid graveyard sequence file, then builds the route described inside it.
+
+Current sequence files:
 
 Template 1:
 
@@ -133,12 +160,34 @@ Template 2:
 Start -> Combat -> Loot -> Combat -> Combat -> Loot -> Exit
 ```
 
-When `GraveyardLevel.tscn` loads, it randomly chooses one of these templates.
+Inside the text files, the same sequence can be written in a simple editable format:
+
+```text
+start, combat, combat, loot, combat, end
+```
+
+Supported separators:
+
+- Commas
+- Spaces
+- New lines
+- `->`
+
+Supported room words:
+
+- `start`
+- `combat`
+- `loot`
+- `puzzle`
+- `exit`
+- `end`, which is treated as `exit`
 
 After choosing the template:
 
 - Each `Combat` slot picks a random combat room.
 - Each `Loot` slot picks a random loot room.
+- `Start` picks from start rooms.
+- `Exit` or `End` picks from exit rooms.
 - The same room can appear more than once in a run for now.
 - The available combat and loot room pools are discovered automatically from the rooms folder.
 
@@ -192,6 +241,47 @@ Markers/ChestSpawnPoints
 ```
 
 Each child `Marker2D` under `ChestSpawnPoints` spawns one loot chest when the room loads.
+
+Consumable spawn markers use:
+
+```text
+Markers/ConsumableSpawnPoints
+```
+
+Each child `Marker2D` under `ConsumableSpawnPoints` spawns one random consumable item when the room loads.
+
+Challenge chest spawn markers use:
+
+```text
+Markers/ChallengeChestSpawnPoints
+```
+
+Each child `Marker2D` under `ChallengeChestSpawnPoints` has a 40% chance to spawn one challenge chest when the room loads. If the roll fails, nothing spawns at that marker.
+
+Current consumables have equal spawn chance:
+
+- Bone Flask
+- Bone Repair Kit
+- Soul Vial
+- Swift Bone
+
+Reusable marker scene bricks live in:
+
+```text
+res://scenes/scaled/pickups/markers/
+```
+
+Available marker bricks:
+
+- `Markers_16px.tscn`: full room marker template with enemy, chest, and consumable folders.
+- `EnemySpawnPoint_16px.tscn`: individual enemy spawn marker.
+- `ChestSpawnPoint_16px.tscn`: individual chest spawn marker.
+- `ConsumableSpawnPoint_16px.tscn`: individual consumable spawn marker.
+- `ChallengeChestSpawnPoint_16px.tscn`: individual challenge chest chance marker.
+
+For rooms, the folder names still matter. Enemy markers must be under `Markers/EnemySpawnPoints`, chest markers under `Markers/ChestSpawnPoints`, consumable markers under `Markers/ConsumableSpawnPoints`, and challenge chest markers under `Markers/ChallengeChestSpawnPoints`.
+
+Challenge chest markers are also accepted directly under `Markers` if their node name starts with `ChallengeChestSpawn`. This keeps the reusable marker brick forgiving when it is dragged into a room by hand.
 
 ## Update: June 22, 2026
 

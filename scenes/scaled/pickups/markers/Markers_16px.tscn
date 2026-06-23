@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[node name="Markers" type="Node2D"]
+
+[node name="EnemySpawnPoints" type="Node2D" parent="."]
+
+[node name="EnemySpawnPoint" type="Marker2D" parent="EnemySpawnPoints"]
+
+[node name="ChestSpawnPoints" type="Node2D" parent="."]
+
+[node name="ChestSpawnPoint" type="Marker2D" parent="ChestSpawnPoints"]
+
+[node name="ConsumableSpawnPoints" type="Node2D" parent="."]
+
+[node name="ConsumableSpawnPoint" type="Marker2D" parent="ConsumableSpawnPoints"]
+
+[node name="ChallengeChestSpawnPoints" type="Node2D" parent="."]
+
+[node name="ChallengeChestSpawnPoint" type="Marker2D" parent="ChallengeChestSpawnPoints"]

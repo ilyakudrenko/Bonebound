@@ -284,3 +284,8 @@ position = Vector2(1080, 307)
 
 [node name="ChestSpawn_Main" type="Marker2D" parent="Markers/ChestSpawnPoints" unique_id=1429129224]
 position = Vector2(335, -88)
+
+[node name="ConsumableSpawnPoints" type="Node2D" parent="Markers" unique_id=1331148558]
+
+[node name="ConsumableSpawn_Test" type="Marker2D" parent="Markers/ConsumableSpawnPoints" unique_id=1616126983]
+position = Vector2(337, 68)

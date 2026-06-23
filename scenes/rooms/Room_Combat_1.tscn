@@ -236,6 +236,11 @@ position = Vector2(327, 193)
 [node name="EnemySpawn_UpperPlatBform2" type="Marker2D" parent="Markers/EnemySpawnPoints" unique_id=1118841647]
 position = Vector2(369, 66)
 
+[node name="ConsumableSpawnPoints" type="Node2D" parent="Markers" unique_id=435216984]
+
+[node name="ConsumableSpawn_Test2" type="Marker2D" parent="Markers/ConsumableSpawnPoints" unique_id=2027457992]
+position = Vector2(506, 95)
+
 [node name="Ladders" type="Node2D" parent="." unique_id=224555656]
 
 [node name="TestLadder" parent="Ladders" unique_id=1317186068 instance=ExtResource("4_ladder_16px")]

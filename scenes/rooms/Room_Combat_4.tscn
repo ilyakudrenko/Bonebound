@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://b0pnjm74bc73h" path="res://assets/Graveyard [16x16]/Tiles/Back_Tiles.png" id="3_76620"]
 [ext_resource type="Texture2D" uid="uid://dh2lk31aownvt" path="res://assets/Graveyard [16x16]/Props&Objects/Ladder.png" id="4_jdfrb"]
 [ext_resource type="Texture2D" uid="uid://kidkjleyluvk" path="res://assets/Graveyard [16x16]/Props&Objects/Spikes.png" id="5_ll834"]
+[ext_resource type="PackedScene" path="res://scenes/scaled/pickups/markers/ChallengeChestSpawnPoint_16px.tscn" id="6_d5l0w"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6eqyr"]
 texture = ExtResource("2_0chdc")
@@ -260,3 +261,8 @@ position = Vector2(0, 276)
 
 [node name="EnemySpawn_GroundB" type="Marker2D" parent="Markers/EnemySpawnPoints" unique_id=621933456]
 position = Vector2(-165, 372)
+
+[node name="ChallengeChestSpawnPoints" type="Node2D" parent="Markers" unique_id=73762541]
+
+[node name="ChallengeChestSpawnPoint" parent="Markers/ChallengeChestSpawnPoints" unique_id=843393317 instance=ExtResource("6_d5l0w")]
+position = Vector2(-619, 303)

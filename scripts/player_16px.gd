@@ -93,6 +93,8 @@ const HARPOON_ARM_THROW_COOLDOWN := 3.5
 const SOUL_STACK_PIP_SIZE := Vector2(10, 8)
 const SOUL_STACK_FILLED_COLOR := Color(0.58, 0.22, 0.95, 1)
 const SOUL_STACK_EMPTY_COLOR := Color(0.16, 0.08, 0.24, 0.9)
+const SWIFT_BONE_DEFAULT_SPEED_MULTIPLIER := 1.2
+const SWIFT_BONE_DEFAULT_ROLL_MULTIPLIER := 1.2
 
 const THROWN_BODY_PART_SCENE := preload("res://scenes/scaled/body_parts/ThrownBodyPart_16px.tscn")
 const FLOATING_FEEDBACK_MESSAGE_SCENE := preload("res://scenes/ui/FloatingFeedbackMessage.tscn")
@@ -150,6 +152,7 @@ var is_spider_wall_hopping := false
 var spider_wall_hop_time_left := 0.0
 var spider_wall_hop_cooldown_left := 0.0
 var spider_wall_hop_direction := 0
+var swift_bone_time_left := 0.0
 
 var has_head := true
 var has_left_arm := true
@@ -219,6 +222,7 @@ func _physics_process(delta: float) -> void:
 	update_arm_throw_cooldowns(delta)
 	update_rapier_riposte(delta)
 	update_duelist_momentum(delta)
+	update_swift_bone(delta)
 	update_ground_slam_cooldown(delta)
 	update_spider_wall_climb(delta)
 	update_spider_wall_hop(delta)
@@ -484,7 +488,7 @@ func get_current_roll_speed() -> float:
 	if get_leg_count() == 1:
 		roll_speed *= ONE_LEG_ROLL_SPEED_MULTIPLIER
 
-	return roll_speed * get_duelist_momentum_roll_multiplier()
+	return roll_speed * get_duelist_momentum_roll_multiplier() * get_swift_bone_roll_multiplier()
 
 
 func can_stop_roll() -> bool:
@@ -517,7 +521,7 @@ func get_current_speed() -> float:
 	elif leg_count == 0:
 		current_speed *= NO_LEGS_SPEED_MULTIPLIER
 
-	return current_speed * get_duelist_momentum_speed_multiplier()
+	return current_speed * get_duelist_momentum_speed_multiplier() * get_swift_bone_speed_multiplier()
 
 
 func get_current_jump_velocity() -> float:
@@ -971,7 +975,7 @@ func apply_weapon_kill_effects(target: Node, target_was_crowd_controlled: bool, 
 	restore_health(heal_amount)
 
 
-func restore_health(amount: int) -> void:
+func restore_health(amount: int, feedback_text: String = "Execution Heal") -> void:
 	if amount <= 0 or is_dead:
 		return
 
@@ -979,7 +983,7 @@ func restore_health(amount: int) -> void:
 	health = mini(STARTING_HEALTH, health + amount)
 	if health > previous_health:
 		update_health_bar()
-		show_feedback_message("Execution Heal")
+		show_feedback_message(feedback_text)
 
 
 func get_target_health(target: Node) -> int:
@@ -1200,6 +1204,40 @@ func get_duelist_momentum_roll_multiplier() -> float:
 	))
 
 
+func activate_swift_bone(duration: float) -> void:
+	swift_bone_time_left = maxf(swift_bone_time_left, duration)
+	show_feedback_message("Swift Bone")
+
+
+func update_swift_bone(delta: float) -> void:
+	if swift_bone_time_left <= 0.0:
+		return
+
+	swift_bone_time_left = maxf(swift_bone_time_left - delta, 0.0)
+
+
+func get_swift_bone_speed_multiplier() -> float:
+	if swift_bone_time_left <= 0.0:
+		return 1.0
+
+	return float(ItemDatabase.get_consumable_value(
+		ItemDatabase.CONSUMABLE_SWIFT_BONE,
+		"speed_multiplier",
+		SWIFT_BONE_DEFAULT_SPEED_MULTIPLIER
+	))
+
+
+func get_swift_bone_roll_multiplier() -> float:
+	if swift_bone_time_left <= 0.0:
+		return 1.0
+
+	return float(ItemDatabase.get_consumable_value(
+		ItemDatabase.CONSUMABLE_SWIFT_BONE,
+		"roll_multiplier",
+		SWIFT_BONE_DEFAULT_ROLL_MULTIPLIER
+	))
+
+
 func get_soul_harvester_damage() -> int:
 	var bonus_per_stack := get_soul_harvester_damage_bonus_per_stack()
 	var damage_multiplier := 1.0 + (float(soul_harvester_stacks) * bonus_per_stack)
@@ -1212,12 +1250,26 @@ func notify_enemy_killed() -> void:
 	if not has_soul_harvester:
 		return
 
-	var max_stacks := get_soul_harvester_max_stacks()
-	var was_at_max_stacks := soul_harvester_stacks >= max_stacks
-	soul_harvester_stacks = mini(soul_harvester_stacks + 1, max_stacks)
+	var was_at_max_stacks := soul_harvester_stacks >= get_soul_harvester_max_stacks()
+	add_soul_harvester_stacks(1, false)
 	if was_at_max_stacks:
 		restore_health(get_soul_harvester_max_stack_kill_heal())
+
+
+func can_use_soul_vial() -> bool:
+	return has_soul_harvester
+
+
+func add_soul_harvester_stacks(amount: int, show_feedback: bool = true) -> bool:
+	if not has_soul_harvester or amount <= 0:
+		return false
+
+	soul_harvester_stacks = mini(soul_harvester_stacks + amount, get_soul_harvester_max_stacks())
 	update_soul_harvester_ui()
+	if show_feedback:
+		show_feedback_message("Soul Vial")
+
+	return true
 
 
 func notify_challenge_enemy_killed() -> void:
@@ -2103,6 +2155,61 @@ func recover_body_part(body_part_type: String, carried_item_type: String = "", b
 		return true
 
 	return false
+
+
+func has_missing_body_parts() -> bool:
+	return not has_head or not has_left_arm or not has_right_arm or not has_left_leg or not has_right_leg
+
+
+func repair_missing_body_parts() -> bool:
+	if not has_missing_body_parts():
+		show_feedback_message("No parts missing")
+		return false
+
+	if not has_head:
+		has_head = true
+		head_part_id = "skeleton_head"
+		head.show()
+
+	if not has_left_arm:
+		has_left_arm = true
+		left_arm_part_id = "skeleton_left_arm"
+		left_arm_part_color = SKELETON_ARM_COLOR
+		left_arm_throw_cooldown_left = 0.0
+		left_arm_use_cooldown_left = 0.0
+		left_arm.color = left_arm_part_color
+		left_arm.show()
+
+	if not has_right_arm:
+		has_right_arm = true
+		right_arm_part_id = "skeleton_right_arm"
+		right_arm_part_color = SKELETON_ARM_COLOR
+		right_arm_throw_cooldown_left = 0.0
+		right_arm_use_cooldown_left = 0.0
+		right_arm.color = right_arm_part_color
+		right_arm.show()
+
+	if not has_left_leg:
+		has_left_leg = true
+		left_leg_part_id = "skeleton_left_leg"
+		left_leg_part_color = SKELETON_LEG_COLOR
+		left_leg.color = left_leg_part_color
+		left_leg.show()
+
+	if not has_right_leg:
+		has_right_leg = true
+		right_leg_part_id = "skeleton_right_leg"
+		right_leg_part_color = SKELETON_LEG_COLOR
+		right_leg.color = right_leg_part_color
+		right_leg.show()
+
+	double_jumps_left = get_max_double_jumps()
+	is_ground_slamming = false
+	is_spider_wall_climbing = false
+	is_spider_wall_hopping = false
+	update_body_pose()
+	show_feedback_message("Body repaired")
+	return true
 
 
 func recover_carried_item(carried_item_type: String, carried_item_rarity: String = ItemDatabase.RARITY_COMMON) -> void:

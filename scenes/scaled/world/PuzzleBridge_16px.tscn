@@ -1,0 +1,37 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/puzzle_bridge_16px.gd" id="1_bridge_script"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bridge"]
+size = Vector2(176, 16)
+
+[node name="PuzzleBridge16px" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 1
+script = ExtResource("1_bridge_script")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_bridge")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Main" type="ColorRect" parent="Visual"]
+offset_left = -88.0
+offset_top = -7.0
+offset_right = 88.0
+offset_bottom = 8.0
+color = Color(0.31, 0.22, 0.15, 1)
+
+[node name="TopEdge" type="ColorRect" parent="Visual"]
+offset_left = -88.0
+offset_top = -8.0
+offset_right = 88.0
+offset_bottom = -4.0
+color = Color(0.5, 0.36, 0.2, 1)
+
+[node name="BottomEdge" type="ColorRect" parent="Visual"]
+offset_left = -88.0
+offset_top = 5.0
+offset_right = 88.0
+offset_bottom = 8.0
+color = Color(0.16, 0.1, 0.07, 1)

@@ -6,6 +6,10 @@ extends Node2D
 @export var chest_scene: PackedScene = ChestSpawnDatabase.DEFAULT_CHEST_SCENE
 @export var spawn_chests_on_ready := true
 @export var use_weighted_chest_spawns := true
+@export var spawn_consumables_on_ready := true
+@export var challenge_chest_scene: PackedScene = preload("res://scenes/scaled/world/ChallengeChest_16px.tscn")
+@export_range(0.0, 1.0, 0.01) var challenge_chest_spawn_chance := 0.4
+@export var spawn_challenge_chests_on_ready := true
 
 
 func _ready() -> void:
@@ -13,6 +17,10 @@ func _ready() -> void:
 		spawn_enemies()
 	if spawn_chests_on_ready:
 		spawn_chests()
+	if spawn_consumables_on_ready:
+		spawn_consumables()
+	if spawn_challenge_chests_on_ready:
+		spawn_challenge_chests()
 
 
 func spawn_enemies() -> void:
@@ -61,6 +69,69 @@ func spawn_chest_at(spawn_position: Vector2, chests_parent: Node) -> void:
 
 	chests_parent.add_child(chest)
 	chest.global_position = spawn_position
+
+
+func spawn_consumables() -> void:
+	var spawn_points := get_node_or_null("Markers/ConsumableSpawnPoints")
+	if spawn_points == null:
+		return
+
+	var consumables_parent := get_or_create_consumables_parent()
+
+	for child in spawn_points.get_children():
+		if child is Marker2D:
+			spawn_consumable_at(child.global_position, consumables_parent)
+
+
+func spawn_consumable_at(spawn_position: Vector2, consumables_parent: Node) -> void:
+	var selected_consumable_scene: PackedScene = ConsumableSpawnDatabase.get_random_consumable_scene()
+	if selected_consumable_scene == null:
+		return
+
+	var consumable := selected_consumable_scene.instantiate()
+	consumables_parent.add_child(consumable)
+	consumable.global_position = spawn_position
+
+
+func spawn_challenge_chests() -> void:
+	var spawn_points := get_challenge_chest_spawn_points()
+	if spawn_points.is_empty():
+		return
+
+	var chests_parent := get_or_create_chests_parent()
+
+	for spawn_point in spawn_points:
+		try_spawn_challenge_chest_at(spawn_point.global_position, chests_parent)
+
+
+func get_challenge_chest_spawn_points() -> Array[Marker2D]:
+	var markers: Array[Marker2D] = []
+	var marker_root := get_node_or_null("Markers")
+	if marker_root == null:
+		return markers
+
+	var challenge_folder := get_node_or_null("Markers/ChallengeChestSpawnPoints")
+	if challenge_folder != null:
+		for child in challenge_folder.get_children():
+			if child is Marker2D:
+				markers.append(child)
+
+	for child in marker_root.get_children():
+		if child is Marker2D and child.name.begins_with("ChallengeChestSpawn"):
+			markers.append(child)
+
+	return markers
+
+
+func try_spawn_challenge_chest_at(spawn_position: Vector2, chests_parent: Node) -> void:
+	if challenge_chest_scene == null:
+		return
+	if randf() > challenge_chest_spawn_chance:
+		return
+
+	var challenge_chest := challenge_chest_scene.instantiate()
+	chests_parent.add_child(challenge_chest)
+	challenge_chest.global_position = spawn_position
 
 
 func get_random_enemy_scene() -> PackedScene:
@@ -146,6 +217,17 @@ func get_or_create_chests_parent() -> Node:
 	chests_parent.name = "Chests"
 	add_child(chests_parent)
 	return chests_parent
+
+
+func get_or_create_consumables_parent() -> Node:
+	var consumables_parent := get_node_or_null("Consumables")
+	if consumables_parent != null:
+		return consumables_parent
+
+	consumables_parent = Node.new()
+	consumables_parent.name = "Consumables"
+	add_child(consumables_parent)
+	return consumables_parent
 
 
 func has_property(node: Node, property_name: String) -> bool:

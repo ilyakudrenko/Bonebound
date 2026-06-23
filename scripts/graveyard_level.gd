@@ -2,12 +2,7 @@ extends Node2D
 
 const TILE_SIZE_FALLBACK := Vector2(16, 16)
 const DEFAULT_PLAYER_START_POSITION := Vector2(64, 320)
-const ROOM_TYPE_COMBAT := "combat"
-const ROOM_TYPE_LOOT := "loot"
-const LEVEL_SEQUENCE_TEMPLATES := [
-	[ROOM_TYPE_COMBAT, ROOM_TYPE_COMBAT, ROOM_TYPE_LOOT, ROOM_TYPE_COMBAT],
-	[ROOM_TYPE_COMBAT, ROOM_TYPE_LOOT, ROOM_TYPE_COMBAT, ROOM_TYPE_COMBAT, ROOM_TYPE_LOOT],
-]
+const LEVEL_NAME := "graveyard"
 
 @export var room_gap := 0.0
 
@@ -55,30 +50,27 @@ func build_level() -> void:
 
 
 func get_room_sequence() -> Array:
-	var sequence := [RoomCatalog.get_start_room()]
+	var sequence := []
 	var sequence_template: Array = pick_random_sequence_template()
 
 	for room_type in sequence_template:
 		sequence.append(pick_random_room_for_type(room_type))
 
-	sequence.append(RoomCatalog.get_exit_room())
-
 	return sequence
 
 
 func pick_random_sequence_template() -> Array:
-	var template_index := rng.randi_range(0, LEVEL_SEQUENCE_TEMPLATES.size() - 1)
-	return LEVEL_SEQUENCE_TEMPLATES[template_index].duplicate()
+	var sequence_templates := RoomSequenceCatalog.get_sequences_for_level(LEVEL_NAME)
+	if sequence_templates.is_empty():
+		push_warning("No level sequences found for level: %s" % LEVEL_NAME)
+		return []
+
+	var template_index := rng.randi_range(0, sequence_templates.size() - 1)
+	return sequence_templates[template_index].duplicate()
 
 
 func pick_random_room_for_type(room_type: String) -> PackedScene:
-	if room_type == ROOM_TYPE_COMBAT:
-		return pick_random_room(RoomCatalog.get_combat_rooms())
-	if room_type == ROOM_TYPE_LOOT:
-		return pick_random_room(RoomCatalog.get_loot_rooms())
-
-	push_warning("Unknown graveyard room type: %s" % room_type)
-	return null
+	return pick_random_room(RoomCatalog.get_rooms_for_type(room_type))
 
 
 func pick_random_room(room_pool: Array) -> PackedScene:

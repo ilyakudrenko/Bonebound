@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://scripts/pickups/consumable_item_pickup_16px.gd" id="1_bone_repair_pickup_script"]
+[ext_resource type="Texture2D" path="res://assets/16x16 RPG Item Pack/items_sheet.png" id="2_item_sheet"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bone_repair_pickup"]
+size = Vector2(24, 20)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bone_repair"]
+atlas = ExtResource("2_item_sheet")
+region = Rect2(112, 48, 16, 16)
+
+[node name="BoneRepairKitPickup16px" type="Area2D"]
+script = ExtResource("1_bone_repair_pickup_script")
+item_type = "bone_repair_kit"
+
+[node name="Visual" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
+scale = Vector2(1.25, 1.25)
+texture_filter = 1
+texture = SubResource("AtlasTexture_bone_repair")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -9)
+shape = SubResource("RectangleShape2D_bone_repair_pickup")

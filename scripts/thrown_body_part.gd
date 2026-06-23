@@ -19,6 +19,7 @@ const FLYING_STATE := "flying"
 const DROPPED_STATE := "dropped"
 const RETURNING_STATE := "returning"
 const HARPOON_PULLING_STATE := "harpoon_pulling"
+const STUCK_STATE := "stuck"
 
 var direction := Vector2.RIGHT
 var flight_velocity := Vector2.ZERO
@@ -193,6 +194,9 @@ func handle_collision(other: Node) -> void:
 			queue_free()
 		elif is_solid_level_body(other):
 			land_body_part()
+	elif state == STUCK_STATE:
+		if is_recoverable and pickup_delay_left <= 0.0 and other.has_method("recover_body_part") and other.call("recover_body_part", body_part_type, carried_item_type, body_part_id, part_color, carried_item_rarity):
+			queue_free()
 
 
 func drop_body_part() -> void:
@@ -212,6 +216,37 @@ func drop_body_part() -> void:
 	if harpoon_chain != null and is_instance_valid(harpoon_chain):
 		harpoon_chain.queue_free()
 		harpoon_chain = null
+
+
+func stick_to_node(anchor: Node2D) -> void:
+	if anchor == null or not is_instance_valid(anchor):
+		drop_body_part()
+		return
+
+	state = STUCK_STATE
+	flight_velocity = Vector2.ZERO
+	drift_velocity = Vector2.ZERO
+	fall_speed = 0.0
+	is_on_ground = false
+	pickup_delay_left = PICKUP_DELAY
+	global_position = anchor.global_position
+	rotation = 0.0
+
+	if visual != null:
+		visual.color = part_color.darkened(0.15)
+
+	call_deferred("finish_stick_reparent", anchor)
+
+	if harpoon_chain != null and is_instance_valid(harpoon_chain):
+		harpoon_chain.queue_free()
+		harpoon_chain = null
+
+
+func finish_stick_reparent(anchor: Node2D) -> void:
+	if anchor == null or not is_instance_valid(anchor):
+		return
+
+	reparent(anchor, true)
 
 
 func start_returning() -> void:
