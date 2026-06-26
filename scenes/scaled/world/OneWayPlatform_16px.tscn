@@ -1,0 +1,37 @@
+[gd_scene load_steps=2 format=3]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_one_way_platform"]
+size = Vector2(96, 8)
+
+[node name="OneWayPlatform16px" type="StaticBody2D"]
+collision_layer = 1
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -4)
+shape = SubResource("RectangleShape2D_one_way_platform")
+one_way_collision = true
+one_way_collision_margin = 8.0
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Main" type="ColorRect" parent="Visual"]
+offset_left = -48.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = 0.0
+color = Color(0.48, 0.22, 0.18, 1)
+
+[node name="TopEdge" type="ColorRect" parent="Visual"]
+offset_left = -48.0
+offset_top = -8.0
+offset_right = 48.0
+offset_bottom = -5.0
+color = Color(0.82, 0.38, 0.24, 1)
+
+[node name="BottomShadow" type="ColorRect" parent="Visual"]
+offset_left = -48.0
+offset_top = -2.0
+offset_right = 48.0
+offset_bottom = 0.0
+color = Color(0.22, 0.1, 0.09, 1)

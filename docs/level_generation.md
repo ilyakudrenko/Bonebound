@@ -21,7 +21,7 @@ This gives us:
 
 The current generated level scene is:
 
-- `res://scenes/levels/GraveyardLevel.tscn`
+- `res://scenes/levels/level_graveyard/GraveyardLevel.tscn`
 
 This is the scene the player should run to test the generated graveyard route.
 
@@ -41,7 +41,7 @@ The room sequence catalog is:
 
 Rooms are stored as separate authored scenes in:
 
-- `res://scenes/rooms/`
+- `res://scenes/levels/level_graveyard/rooms/`
 
 Current room types:
 
@@ -49,6 +49,7 @@ Current room types:
 - Combat rooms
 - Loot rooms
 - Puzzle rooms
+- Key rooms
 - Exit room
 
 Current room scenes:
@@ -63,6 +64,9 @@ Current room scenes:
 - `Room_Loot_1.tscn`
 - `Room_Loot_2.tscn`
 - `Room_Loot_3.tscn`
+- `Room_Loot_4.tscn`
+- `Room_Puzzle_1.tscn`
+- `Room_Key_1.tscn`
 
 ## Room Catalog
 
@@ -70,11 +74,11 @@ Current room scenes:
 
 It scans:
 
-- `res://scenes/rooms/`
+- `res://scenes/levels/level_graveyard/rooms/`
 
 Rooms are no longer manually added to arrays.
 
-When a new room scene is placed in `res://scenes/rooms/`, the catalog can automatically find it as long as the filename follows the room naming rule.
+When a new graveyard room scene is placed in `res://scenes/levels/level_graveyard/rooms/`, the catalog can automatically find it as long as the filename follows the room naming rule.
 
 ## Room Naming Rule
 
@@ -91,12 +95,14 @@ Examples:
 - `Room_Loot_1.tscn`
 - `Room_Loot_3.tscn`
 - `Room_Puzzle_1.tscn`
+- `Room_Key_1.tscn`
 
 The room type is read from the second word:
 
 - `Room_Combat_3.tscn` becomes a combat room.
 - `Room_Loot_2.tscn` becomes a loot room.
 - `Room_Puzzle_1.tscn` becomes a puzzle room.
+- `Room_Key_1.tscn` becomes a key room.
 
 The ID is read from the third word:
 
@@ -130,7 +136,7 @@ Start and exit rooms are not randomized yet. They stay fixed.
 Sequence templates are stored as text files in:
 
 ```text
-res://scenes/rooms/room_sequences/
+res://scenes/levels/level_graveyard/rooms/room_sequences/
 ```
 
 Sequence filenames use this pattern:
@@ -146,18 +152,37 @@ Examples:
 
 When `GraveyardLevel.tscn` loads, it randomly chooses one valid graveyard sequence file, then builds the route described inside it.
 
+Before the route is assembled, the level also chooses the exit door mode:
+
+- Challenge mode: key rooms are skipped, and the exit door requires the kill challenge.
+- Key mode: a key room is included, and the exit door requires the exit key.
+
+The generated exit door mode is stored by the level script and passed into any challenge door found in the generated rooms.
+
 Current sequence files:
 
 Template 1:
 
 ```text
-Start -> Combat -> Combat -> Loot -> Combat -> Exit
+Start -> Combat -> Combat -> Loot -> Puzzle -> Key -> Combat -> Exit
 ```
 
 Template 2:
 
 ```text
-Start -> Combat -> Loot -> Combat -> Combat -> Loot -> Exit
+Start -> Combat -> Loot -> Combat -> Key -> Combat -> Loot -> Exit
+```
+
+Template 3:
+
+```text
+Start -> Combat -> Loot -> Combat -> Key -> Puzzle -> Combat -> Combat -> Loot -> Exit
+```
+
+Template 4:
+
+```text
+Start -> Combat -> Loot -> Key -> Combat -> Puzzle -> Combat -> Exit
 ```
 
 Inside the text files, the same sequence can be written in a simple editable format:
@@ -179,6 +204,7 @@ Supported room words:
 - `combat`
 - `loot`
 - `puzzle`
+- `key`
 - `exit`
 - `end`, which is treated as `exit`
 
@@ -186,10 +212,17 @@ After choosing the template:
 
 - Each `Combat` slot picks a random combat room.
 - Each `Loot` slot picks a random loot room.
+- Each `Key` slot picks a random key room.
 - `Start` picks from start rooms.
 - `Exit` or `End` picks from exit rooms.
 - The same room can appear more than once in a run for now.
 - The available combat and loot room pools are discovered automatically from the rooms folder.
+
+Key room slots are conditional:
+
+- If the exit door is in key mode, the generator keeps key room slots.
+- If the exit door is in challenge mode, the generator removes key room slots from the selected sequence.
+- If key mode is selected but the chosen sequence has no key slot, the generator inserts one before the exit room.
 
 ## Room Placement
 
@@ -287,12 +320,13 @@ Challenge chest markers are also accepted directly under `Markers` if their node
 
 Room and level generation now use the reorganized scene structure:
 
-- Runtime level scene: `res://scenes/levels/GraveyardLevel.tscn`
-- Authored rooms: `res://scenes/rooms/`
+- Runtime level scene: `res://scenes/levels/level_graveyard/GraveyardLevel.tscn`
+- Graveyard authored rooms: `res://scenes/levels/level_graveyard/rooms/`
+- Graveyard room sequences: `res://scenes/levels/level_graveyard/rooms/room_sequences/`
 - Scaled gameplay objects: `res://scenes/scaled/`
 - Testing scene: `res://scenes/testing/Room_Testing_16px.tscn`
 
-The room catalog still discovers room scenes automatically from `res://scenes/rooms/` using the `Room_<Type>_<ID>.tscn` naming rule.
+The room catalog still discovers graveyard room scenes automatically from `res://scenes/levels/level_graveyard/rooms/` using the `Room_<Type>_<ID>.tscn` naming rule.
 
 Chest loot now comes from `ItemDatabase.get_chest_loot_pool()`. This pool is built from registered weapons and shields, so new weapons or shields added to the item database can become chest rewards without editing a separate chest loot array.
 

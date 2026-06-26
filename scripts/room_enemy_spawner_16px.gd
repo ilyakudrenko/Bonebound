@@ -24,15 +24,14 @@ func _ready() -> void:
 
 
 func spawn_enemies() -> void:
-	var spawn_points := get_node_or_null("Markers/EnemySpawnPoints")
-	if spawn_points == null:
+	var spawn_points := get_spawn_point_markers("EnemySpawnPoints", "EnemySpawn")
+	if spawn_points.is_empty():
 		return
 
 	var enemies_parent := get_or_create_enemies_parent()
 
-	for child in spawn_points.get_children():
-		if child is Marker2D:
-			spawn_enemy_at(child.global_position, enemies_parent)
+	for spawn_point in spawn_points:
+		spawn_enemy_at(spawn_point.global_position, enemies_parent)
 
 
 func spawn_enemy_at(spawn_position: Vector2, enemies_parent: Node) -> void:
@@ -46,15 +45,14 @@ func spawn_enemy_at(spawn_position: Vector2, enemies_parent: Node) -> void:
 
 
 func spawn_chests() -> void:
-	var spawn_points := get_node_or_null("Markers/ChestSpawnPoints")
-	if spawn_points == null:
+	var spawn_points := get_spawn_point_markers("ChestSpawnPoints", "ChestSpawn")
+	if spawn_points.is_empty():
 		return
 
 	var chests_parent := get_or_create_chests_parent()
 
-	for child in spawn_points.get_children():
-		if child is Marker2D:
-			spawn_chest_at(child.global_position, chests_parent)
+	for spawn_point in spawn_points:
+		spawn_chest_at(spawn_point.global_position, chests_parent)
 
 
 func spawn_chest_at(spawn_position: Vector2, chests_parent: Node) -> void:
@@ -72,15 +70,14 @@ func spawn_chest_at(spawn_position: Vector2, chests_parent: Node) -> void:
 
 
 func spawn_consumables() -> void:
-	var spawn_points := get_node_or_null("Markers/ConsumableSpawnPoints")
-	if spawn_points == null:
+	var spawn_points := get_spawn_point_markers("ConsumableSpawnPoints", "ConsumableSpawn")
+	if spawn_points.is_empty():
 		return
 
 	var consumables_parent := get_or_create_consumables_parent()
 
-	for child in spawn_points.get_children():
-		if child is Marker2D:
-			spawn_consumable_at(child.global_position, consumables_parent)
+	for spawn_point in spawn_points:
+		spawn_consumable_at(spawn_point.global_position, consumables_parent)
 
 
 func spawn_consumable_at(spawn_position: Vector2, consumables_parent: Node) -> void:
@@ -106,21 +103,60 @@ func spawn_challenge_chests() -> void:
 
 func get_challenge_chest_spawn_points() -> Array[Marker2D]:
 	var markers: Array[Marker2D] = []
+	var added_markers: Dictionary = {}
+
+	append_spawn_points_from_folder(markers, added_markers, "Markers/ChallengeChestSpawnPoints")
+	append_spawn_points_from_folder(markers, added_markers, "ChallengeChestSpawnPoints")
+	append_direct_spawn_points(markers, added_markers, self, "ChallengeChestSpawn")
+
 	var marker_root := get_node_or_null("Markers")
-	if marker_root == null:
-		return markers
-
-	var challenge_folder := get_node_or_null("Markers/ChallengeChestSpawnPoints")
-	if challenge_folder != null:
-		for child in challenge_folder.get_children():
-			if child is Marker2D:
-				markers.append(child)
-
-	for child in marker_root.get_children():
-		if child is Marker2D and child.name.begins_with("ChallengeChestSpawn"):
-			markers.append(child)
+	if marker_root != null:
+		append_direct_spawn_points(markers, added_markers, marker_root, "ChallengeChestSpawn")
 
 	return markers
+
+
+func get_spawn_point_markers(folder_name: String, marker_name_prefix: String) -> Array[Marker2D]:
+	var markers: Array[Marker2D] = []
+	var added_markers: Dictionary = {}
+
+	append_spawn_points_from_folder(markers, added_markers, "Markers/" + folder_name)
+	append_spawn_points_from_folder(markers, added_markers, folder_name)
+	append_direct_spawn_points(markers, added_markers, self, marker_name_prefix)
+
+	var marker_root := get_node_or_null("Markers")
+	if marker_root != null:
+		append_direct_spawn_points(markers, added_markers, marker_root, marker_name_prefix)
+
+	return markers
+
+
+func append_spawn_points_from_folder(markers: Array[Marker2D], added_markers: Dictionary, folder_path: String) -> void:
+	var folder := get_node_or_null(folder_path)
+	if folder == null:
+		return
+
+	for child in folder.get_children():
+		append_spawn_point(markers, added_markers, child)
+
+
+func append_direct_spawn_points(markers: Array[Marker2D], added_markers: Dictionary, parent: Node, marker_name_prefix: String) -> void:
+	for child in parent.get_children():
+		if child.name.begins_with(marker_name_prefix):
+			append_spawn_point(markers, added_markers, child)
+
+
+func append_spawn_point(markers: Array[Marker2D], added_markers: Dictionary, node: Node) -> void:
+	if not node is Marker2D:
+		return
+
+	var marker := node as Marker2D
+	var marker_id: int = marker.get_instance_id()
+	if added_markers.has(marker_id):
+		return
+
+	added_markers[marker_id] = true
+	markers.append(marker)
 
 
 func try_spawn_challenge_chest_at(spawn_position: Vector2, chests_parent: Node) -> void:

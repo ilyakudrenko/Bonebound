@@ -1,7 +1,7 @@
 extends RefCounted
 class_name RoomSequenceCatalog
 
-const SEQUENCES_FOLDER := "res://scenes/rooms/room_sequences/"
+const SEQUENCES_FOLDER := "res://scenes/levels/level_graveyard/rooms/room_sequences/"
 const FILE_PREFIX := "level"
 const LEVEL_GRAVEYARD := "graveyard"
 
@@ -10,6 +10,7 @@ const ROOM_TYPE_ALIASES := {
 	"combat": RoomCatalog.ROOM_TYPE_COMBAT,
 	"loot": RoomCatalog.ROOM_TYPE_LOOT,
 	"puzzle": RoomCatalog.ROOM_TYPE_PUZZLE,
+	"key": RoomCatalog.ROOM_TYPE_KEY,
 	"exit": RoomCatalog.ROOM_TYPE_EXIT,
 	"end": RoomCatalog.ROOM_TYPE_EXIT,
 }

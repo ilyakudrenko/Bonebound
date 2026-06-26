@@ -1,0 +1,1 @@
+start, combat, loot, combat, key, puzzle, combat, combat, loot, end

@@ -23,7 +23,7 @@ The character, enemies, weapons, and body parts still use simple placeholder sha
 
 The main runtime prototype scene is:
 
-- `res://scenes/levels/GraveyardLevel.tscn`
+- `res://scenes/levels/level_graveyard/GraveyardLevel.tscn`
 
 The older playground scene still exists for isolated testing, but current room and level work is focused on the graveyard scene.
 

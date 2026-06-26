@@ -1,5 +1,8 @@
 extends CharacterBody2D
 
+signal enemy_killed
+signal player_died
+
 const SPEED := 120.0
 const JUMP_VELOCITY := -285.0
 const DOUBLE_JUMP_VELOCITY := -260.0
@@ -16,6 +19,7 @@ const LADDER_DESCEND_SPEED := 96.0
 const ARM_THROW_DAMAGE := 1
 const ARM_THROW_OFFSET := Vector2(18, -26)
 const LEG_DROP_OFFSET := Vector2(0, -6)
+const HEALTH_BAR_WIDTH := 128.0
 const NORMAL_BODY_PARTS_POSITION := Vector2.ZERO
 const CRAWLER_BODY_PARTS_POSITION := Vector2(0, 16)
 const NORMAL_COLLISION_POSITION := Vector2(0, -24)
@@ -99,6 +103,8 @@ const SWIFT_BONE_DEFAULT_ROLL_MULTIPLIER := 1.2
 const THROWN_BODY_PART_SCENE := preload("res://scenes/scaled/body_parts/ThrownBodyPart_16px.tscn")
 const FLOATING_FEEDBACK_MESSAGE_SCENE := preload("res://scenes/ui/FloatingFeedbackMessage.tscn")
 
+@export var kill_counter_label_prefix := "Kills"
+
 var facing_direction := 1
 var is_rolling := false
 var is_forced_tunnel_roll := false
@@ -124,6 +130,7 @@ var duelist_momentum_time_left := 0.0
 var has_shield := false
 var shield_type := BASIC_SHIELD_TYPE
 var shield_rarity := ItemDatabase.RARITY_COMMON
+var has_exit_key := false
 var is_using_shield := false
 var shield_use_time_left := 0.0
 var shield_parry_time_left := 0.0
@@ -153,6 +160,7 @@ var spider_wall_hop_time_left := 0.0
 var spider_wall_hop_cooldown_left := 0.0
 var spider_wall_hop_direction := 0
 var swift_bone_time_left := 0.0
+var level_enemy_kills := 0
 
 var has_head := true
 var has_left_arm := true
@@ -189,11 +197,18 @@ var previous_key_states := {}
 @onready var shield_icon: TextureRect = $HUD/ShieldIcon
 @onready var bone_mirror_icon: TextureRect = $HUD/BoneMirrorIcon
 @onready var spiked_shield_icon: TextureRect = $HUD/SpikedShieldIcon
+@onready var exit_key_icon: TextureRect = $HUD/ExitKeyIcon
 @onready var health_bar: ColorRect = $HUD/HealthBar
 @onready var collision_shape: CollisionShape2D = $CollisionShape2D
 @onready var soul_stack_label: Label = $HUD/SoulStackLabel
 @onready var soul_stack_pips: HBoxContainer = $HUD/SoulStackPips
+@onready var kill_counter_label: Label = $HUD/KillCounterPanel/KillCounterLabel
 @onready var soul_aura: ColorRect = $BodyParts/SoulAura
+
+
+func _ready() -> void:
+	update_kill_counter_ui()
+	update_exit_key_ui()
 
 
 func _physics_process(delta: float) -> void:
@@ -1245,6 +1260,8 @@ func get_soul_harvester_damage() -> int:
 
 
 func notify_enemy_killed() -> void:
+	register_level_enemy_kill()
+	enemy_killed.emit()
 	notify_challenge_enemy_killed()
 
 	if not has_soul_harvester:
@@ -1254,6 +1271,50 @@ func notify_enemy_killed() -> void:
 	add_soul_harvester_stacks(1, false)
 	if was_at_max_stacks:
 		restore_health(get_soul_harvester_max_stack_kill_heal())
+
+
+func register_level_enemy_kill(amount: int = 1) -> void:
+	if amount <= 0:
+		return
+
+	level_enemy_kills += amount
+	update_kill_counter_ui()
+
+
+func update_kill_counter_ui() -> void:
+	kill_counter_label.text = kill_counter_label_prefix + ": " + str(level_enemy_kills)
+
+
+func get_level_enemy_kills() -> int:
+	return level_enemy_kills
+
+
+func pickup_exit_key() -> bool:
+	if has_exit_key:
+		return false
+
+	has_exit_key = true
+	update_exit_key_ui()
+	show_feedback_message("Exit Key")
+	return true
+
+
+func has_level_exit_key() -> bool:
+	return has_exit_key
+
+
+func consume_exit_key() -> bool:
+	if not has_exit_key:
+		return false
+
+	has_exit_key = false
+	update_exit_key_ui()
+	show_feedback_message("Key used")
+	return true
+
+
+func update_exit_key_ui() -> void:
+	exit_key_icon.visible = has_exit_key
 
 
 func can_use_soul_vial() -> bool:
@@ -1837,7 +1898,7 @@ func take_spike_damage() -> void:
 
 func update_health_bar() -> void:
 	var health_ratio := float(health) / float(STARTING_HEALTH)
-	health_bar.size.x = 80.0 * health_ratio
+	health_bar.size.x = HEALTH_BAR_WIDTH * health_ratio
 
 
 func show_feedback_message(message: String) -> void:
@@ -1863,6 +1924,7 @@ func die() -> void:
 	body_parts.hide()
 	collision_shape.set_deferred("disabled", true)
 	show_feedback_message("You died")
+	player_died.emit()
 
 
 func spawn_death_pieces() -> void:

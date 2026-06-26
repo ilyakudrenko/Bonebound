@@ -1,19 +1,21 @@
 extends RefCounted
 class_name RoomCatalog
 
-const ROOMS_FOLDER := "res://scenes/rooms/"
+const ROOMS_FOLDER := "res://scenes/levels/level_graveyard/rooms/"
 const ROOM_PREFIX := "room"
 const ROOM_TYPE_START := "start"
 const ROOM_TYPE_EXIT := "exit"
 const ROOM_TYPE_COMBAT := "combat"
 const ROOM_TYPE_LOOT := "loot"
 const ROOM_TYPE_PUZZLE := "puzzle"
+const ROOM_TYPE_KEY := "key"
 const VALID_ROOM_TYPES := [
 	ROOM_TYPE_START,
 	ROOM_TYPE_EXIT,
 	ROOM_TYPE_COMBAT,
 	ROOM_TYPE_LOOT,
 	ROOM_TYPE_PUZZLE,
+	ROOM_TYPE_KEY,
 ]
 
 
@@ -31,6 +33,10 @@ static func get_loot_rooms() -> Array:
 
 static func get_puzzle_rooms() -> Array:
 	return get_rooms_for_type(ROOM_TYPE_PUZZLE)
+
+
+static func get_key_rooms() -> Array:
+	return get_rooms_for_type(ROOM_TYPE_KEY)
 
 
 static func get_exit_room() -> PackedScene:

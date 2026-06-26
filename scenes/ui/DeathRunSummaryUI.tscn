@@ -1,0 +1,249 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/death_run_summary_ui.gd" id="1_death_summary_script"]
+
+[node name="DeathRunSummaryUI" type="CanvasLayer"]
+layer = 120
+script = ExtResource("1_death_summary_script")
+
+[node name="Root" type="Control" parent="."]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Overlay" type="ColorRect" parent="Root"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.01, 0.012, 0.018, 0.74)
+
+[node name="LoadingScreen" type="Control" parent="Root"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="Root/LoadingScreen"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.005, 0.007, 0.012, 0.96)
+
+[node name="Content" type="VBoxContainer" parent="Root/LoadingScreen"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -360.0
+offset_top = -220.0
+offset_right = 360.0
+offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 28
+alignment = 1
+
+[node name="Title" type="Label" parent="Root/LoadingScreen/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 62
+text = "GRAVEYARD CLEARED"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Root/LoadingScreen/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.86, 0.92, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 28
+text = "Run summary"
+horizontal_alignment = 1
+
+[node name="Stats" type="VBoxContainer" parent="Root/LoadingScreen/Content"]
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_constants/separation = 16
+
+[node name="RuntimeRow" type="HBoxContainer" parent="Root/LoadingScreen/Content/Stats"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+
+[node name="RuntimeLabel" type="Label" parent="Root/LoadingScreen/Content/Stats/RuntimeRow"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.82, 0.88, 1)
+theme_override_font_sizes/font_size = 30
+text = "Runtime"
+
+[node name="RuntimeValue" type="Label" parent="Root/LoadingScreen/Content/Stats/RuntimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.93, 0.62, 1)
+theme_override_font_sizes/font_size = 30
+text = "00:00.00"
+horizontal_alignment = 2
+
+[node name="KillsRow" type="HBoxContainer" parent="Root/LoadingScreen/Content/Stats"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+
+[node name="KillsLabel" type="Label" parent="Root/LoadingScreen/Content/Stats/KillsRow"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.82, 0.88, 1)
+theme_override_font_sizes/font_size = 30
+text = "Total kills"
+
+[node name="KillsValue" type="Label" parent="Root/LoadingScreen/Content/Stats/KillsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.93, 0.62, 1)
+theme_override_font_sizes/font_size = 30
+text = "0"
+horizontal_alignment = 2
+
+[node name="SecretsRow" type="HBoxContainer" parent="Root/LoadingScreen/Content/Stats"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+
+[node name="SecretsLabel" type="Label" parent="Root/LoadingScreen/Content/Stats/SecretsRow"]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.82, 0.88, 1)
+theme_override_font_sizes/font_size = 30
+text = "Secrets"
+
+[node name="SecretsValue" type="Label" parent="Root/LoadingScreen/Content/Stats/SecretsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.93, 0.62, 1)
+theme_override_font_sizes/font_size = 30
+text = "0"
+horizontal_alignment = 2
+
+[node name="LoadingLabel" type="Label" parent="Root/LoadingScreen/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.9, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 34
+text = "Loading boss arena..."
+horizontal_alignment = 1
+
+[node name="Panel" type="PanelContainer" parent="Root"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -230.0
+offset_top = -170.0
+offset_right = 230.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Content" type="VBoxContainer" parent="Root/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="Root/Panel/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.2, 0.16, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 38
+text = "YOU DIED"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="Root/Panel/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.82, 0.84, 0.9, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+text = "Run summary"
+horizontal_alignment = 1
+
+[node name="Stats" type="VBoxContainer" parent="Root/Panel/Content"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="RuntimeRow" type="HBoxContainer" parent="Root/Panel/Content/Stats"]
+layout_mode = 2
+
+[node name="RuntimeLabel" type="Label" parent="Root/Panel/Content/Stats/RuntimeRow"]
+custom_minimum_size = Vector2(155, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.82, 0.88, 1)
+theme_override_font_sizes/font_size = 20
+text = "Runtime"
+
+[node name="RuntimeValue" type="Label" parent="Root/Panel/Content/Stats/RuntimeRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.93, 0.62, 1)
+theme_override_font_sizes/font_size = 20
+text = "00:00.00"
+horizontal_alignment = 2
+
+[node name="KillsRow" type="HBoxContainer" parent="Root/Panel/Content/Stats"]
+layout_mode = 2
+
+[node name="KillsLabel" type="Label" parent="Root/Panel/Content/Stats/KillsRow"]
+custom_minimum_size = Vector2(155, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.82, 0.88, 1)
+theme_override_font_sizes/font_size = 20
+text = "Total kills"
+
+[node name="KillsValue" type="Label" parent="Root/Panel/Content/Stats/KillsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.93, 0.62, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+horizontal_alignment = 2
+
+[node name="SecretsRow" type="HBoxContainer" parent="Root/Panel/Content/Stats"]
+layout_mode = 2
+
+[node name="SecretsLabel" type="Label" parent="Root/Panel/Content/Stats/SecretsRow"]
+custom_minimum_size = Vector2(155, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.82, 0.88, 1)
+theme_override_font_sizes/font_size = 20
+text = "Secrets"
+
+[node name="SecretsValue" type="Label" parent="Root/Panel/Content/Stats/SecretsRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 0.93, 0.62, 1)
+theme_override_font_sizes/font_size = 20
+text = "0"
+horizontal_alignment = 2
+
+[node name="RestartButton" type="Button" parent="Root/Panel/Content"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+theme_override_font_sizes/font_size = 19
+text = "Restart  (R)"

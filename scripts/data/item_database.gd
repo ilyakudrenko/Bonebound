@@ -16,6 +16,8 @@ const CONSUMABLE_BONE_REPAIR_KIT := "bone_repair_kit"
 const CONSUMABLE_SOUL_VIAL := "soul_vial"
 const CONSUMABLE_SWIFT_BONE := "swift_bone"
 
+const SPECIAL_EXIT_KEY := "exit_key"
+
 const WEIGHT_LIGHT := "light"
 const WEIGHT_MEDIUM := "medium"
 const WEIGHT_HEAVY := "heavy"
@@ -362,6 +364,16 @@ const CONSUMABLES := {
 	},
 }
 
+const SPECIAL_ITEMS := {
+	SPECIAL_EXIT_KEY: {
+		"label": "Exit Key",
+		"description": "A key for a locked challenge door.",
+		"pickup_scene": "res://scenes/scaled/pickups/ExitKeyPickup_16px.tscn",
+		"icon_texture": "res://assets/16x16 RPG Item Pack/items_sheet.png",
+		"icon_region": Rect2(80, 128, 16, 16),
+	},
+}
+
 
 static func get_weapon_data(weapon_id: String) -> Dictionary:
 	return WEAPONS.get(weapon_id, {}) as Dictionary
@@ -412,6 +424,18 @@ static func get_consumable_pickup_scene_path(consumable_id: String) -> String:
 	return String(get_consumable_value(consumable_id, "pickup_scene", ""))
 
 
+static func get_special_item_data(item_id: String) -> Dictionary:
+	return SPECIAL_ITEMS.get(item_id, {}) as Dictionary
+
+
+static func get_special_item_value(item_id: String, key: String, fallback: Variant) -> Variant:
+	return get_special_item_data(item_id).get(key, fallback)
+
+
+static func get_special_item_pickup_scene_path(item_id: String) -> String:
+	return String(get_special_item_value(item_id, "pickup_scene", ""))
+
+
 static func is_weapon(item_id: String) -> bool:
 	return WEAPONS.has(item_id)
 
@@ -424,6 +448,10 @@ static func is_consumable(item_id: String) -> bool:
 	return CONSUMABLES.has(item_id)
 
 
+static func is_special_item(item_id: String) -> bool:
+	return SPECIAL_ITEMS.has(item_id)
+
+
 static func get_item_data(item_id: String) -> Dictionary:
 	if is_weapon(item_id):
 		return get_weapon_data(item_id)
@@ -431,6 +459,8 @@ static func get_item_data(item_id: String) -> Dictionary:
 		return get_shield_data(item_id)
 	if is_consumable(item_id):
 		return get_consumable_data(item_id)
+	if is_special_item(item_id):
+		return get_special_item_data(item_id)
 	return {}
 
 
@@ -441,6 +471,8 @@ static func get_item_pickup_scene_path(item_id: String) -> String:
 		return get_shield_pickup_scene_path(item_id)
 	if is_consumable(item_id):
 		return get_consumable_pickup_scene_path(item_id)
+	if is_special_item(item_id):
+		return get_special_item_pickup_scene_path(item_id)
 	return ""
 
 
